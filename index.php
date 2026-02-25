@@ -120,12 +120,28 @@ if ($inviters === []) {
 $phoneDisplay    = (string)($invitation['contact_phone']    ?? '');
 $phoneDial       = preg_replace('/[^0-9+]/', '', $phoneDisplay) ?: '';
 $mapsUrl         = (string)($invitation['google_maps_url']  ?? '#');
-$whatsAppMessage = (string)($invitation['whatsapp_message'] ?? '');
+$whatsAppMessage = trim((string)($invitation['whatsapp_message'] ?? ''));
 
-$ogTitle      = $title;
-$ogDescription = 'ભાવભર્યું આમંત્રણ';
+$ogTitle = trim($title) !== '' ? trim($title) : 'સીમંત વિધિ (બેબી શાવર)';
+$ogDescriptionParts = ['આપ સહપરિવારને હાર્દિક આમંત્રણ'];
+if ($dateText !== '') $ogDescriptionParts[] = 'તા. ' . $dateText;
+if ($timeText !== '') $ogDescriptionParts[] = $timeText;
+if ($venueName !== '') $ogDescriptionParts[] = 'સ્થળ: ' . $venueName;
+$ogDescription = implode(' | ', $ogDescriptionParts);
+if ($ogDescription === '') $ogDescription = 'ભાવભર્યું આમંત્રણ';
+if (function_exists('mb_strimwidth')) {
+    $ogDescription = mb_strimwidth($ogDescription, 0, 190, '…', 'UTF-8');
+}
+
+$ogImageAlt = trim($ogTitle . ($motherName !== '' ? ' - ' . $motherName : '') . ' આમંત્રણ કાર્ડ');
+if ($ogImageAlt === '') $ogImageAlt = 'સીમંત વિધિ આમંત્રણ કાર્ડ';
+
+if ($whatsAppMessage === '') {
+    $whatsAppMessage = $ogTitle . ' - ' . $ogDescription;
+}
 $scriptBase   = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
-$ogImageUrl   = baseUrl() . $scriptBase . '/share-image.php';
+$ogImageVersion = (string)(@filemtime(__DIR__ . '/data.php') ?: time());
+$ogImageUrl   = baseUrl() . $scriptBase . '/share-image.php?v=' . rawurlencode($ogImageVersion);
 
 $flash  = ['type' => '', 'message' => ''];
 $old    = ['name' => '', 'mobile' => '', 'guests' => '1'];
@@ -194,19 +210,25 @@ if ($qrEnabled) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo e($ogTitle); ?></title>
     <meta name="description" content="<?php echo e($ogDescription); ?>">
+    <link rel="canonical" href="<?php echo e($currentPageUrl); ?>">
     <meta property="og:type"              content="website">
+    <meta property="og:site_name"         content="Simant Invitation">
+    <meta property="og:locale"            content="gu_IN">
     <meta property="og:title"             content="<?php echo e($ogTitle); ?>">
     <meta property="og:description"       content="<?php echo e($ogDescription); ?>">
+    <meta property="og:image:url"         content="<?php echo e($ogImageUrl); ?>">
     <meta property="og:image"             content="<?php echo e($ogImageUrl); ?>">
     <meta property="og:image:secure_url"  content="<?php echo e($ogImageUrl); ?>">
     <meta property="og:image:type"        content="image/png">
     <meta property="og:image:width"       content="1200">
     <meta property="og:image:height"      content="630">
+    <meta property="og:image:alt"         content="<?php echo e($ogImageAlt); ?>">
     <meta property="og:url"               content="<?php echo e($currentPageUrl); ?>">
     <meta name="twitter:card"             content="summary_large_image">
     <meta name="twitter:title"            content="<?php echo e($ogTitle); ?>">
     <meta name="twitter:description"      content="<?php echo e($ogDescription); ?>">
     <meta name="twitter:image"            content="<?php echo e($ogImageUrl); ?>">
+    <meta name="twitter:image:alt"        content="<?php echo e($ogImageAlt); ?>">
 
     <!-- Gujarati + Elegant Display fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@300;400;500;600;700&family=Tiro+Devanagari+Sanskrit:ital@0;1&family=Noto+Serif+Gujarati:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -389,6 +411,32 @@ if ($qrEnabled) {
             padding: 20px 32px 20px;
         }
 
+        /* Top toy strip */
+        .toy-strip {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 10px;
+            margin: 0 auto 8px;
+            pointer-events: none;
+        }
+
+        .toy-strip img {
+            display: block;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 6px rgba(80, 50, 10, 0.18));
+        }
+
+        .toy-1 { width: 34px; animation: toyFloat 6.2s ease-in-out infinite; }
+        .toy-2 { width: 46px; animation: toyFloat 7.1s ease-in-out infinite 0.6s; }
+        .toy-3 { width: 36px; animation: toyFloat 6.8s ease-in-out infinite 1.2s; }
+        .toy-4 { width: 40px; animation: toyFloat 7.5s ease-in-out infinite 0.9s; }
+
+        @keyframes toyFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-4px) rotate(-1deg); }
+        }
+
         /* Ganesh Icon */
         .ganesh-wrap {
             margin: 0 auto 4px;
@@ -433,7 +481,7 @@ if ($qrEnabled) {
             font-size: clamp(0.82rem, 2.6vw, 0.9rem);
             color: #6b4020;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 15px;
         }
 
         /* Mother's name – big display */
@@ -634,11 +682,18 @@ if ($qrEnabled) {
         /* ── Responsive ──────────────────────────── */
         @media (max-width: 420px) {
             .orn-tl, .orn-tr { width: 80px; }
-            .orn-bl, .orn-br { width: 88px; }
+            .orn-bl { width: 76px; left: 4px; bottom: 2px; }
+            .orn-br { width: 62px; right: 4px; bottom: 2px; }
             .balloon { width: 24px; height: 34px; }
+            .toy-strip { gap: 8px; margin-bottom: 6px; }
+            .toy-1 { width: 28px; }
+            .toy-2 { width: 38px; }
+            .toy-3 { width: 30px; }
+            .toy-4 { width: 34px; }
             .card-content { padding: 14px 16px 16px; }
             .btn-row { grid-template-columns: 1fr; }
-            .inv-card { padding-bottom: 80px; }
+            .inv-card { padding-bottom: 64px; overflow: hidden; }
+            .inv-card::before { bottom: 72px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -680,6 +735,13 @@ if ($qrEnabled) {
         <img src="assets/images/alphabet-blocks.svg"       alt="" class="orn orn-br">
 
         <div class="card-content">
+
+            <div class="toy-strip" aria-hidden="true">
+                <img src="assets/images/alphabet-blocks.svg"      alt="" class="toy-1">
+                <img src="assets/images/baby-stroller-blocks.svg" alt="" class="toy-2">
+                <img src="assets/images/baby-mobile.svg"          alt="" class="toy-3">
+                <img src="assets/images/baby-clothes.svg"         alt="" class="toy-4">
+            </div>
 
             <!-- Ganesh -->
             <div class="ganesh-wrap">

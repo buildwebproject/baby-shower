@@ -21,6 +21,18 @@ php -S localhost:8000
 Then open:
 - `http://localhost:8000/index.php`
 
+## Generate share image (one command)
+
+```bash
+./generate-share-image.sh
+```
+
+Optional custom output path:
+
+```bash
+./generate-share-image.sh assets/images/invitation-preview.png
+```
+
 ## Project structure
 
 ```text
