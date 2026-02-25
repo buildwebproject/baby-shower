@@ -1,0 +1,586 @@
+:root {
+    --bg-a: #fff6fb;
+    --bg-b: #f6efff;
+    --ink: #5d3550;
+    --ink-soft: #7d5b72;
+    --rose-100: #ffe9f5;
+    --rose-200: #fbd2e8;
+    --rose-300: #f4a8cf;
+    --rose-500: #cf6da4;
+    --lavender-100: #f3ecff;
+    --lavender-300: #d9c8ff;
+    --gold-soft: #f6d99e;
+    --door-shadow: 0 18px 34px rgba(137, 86, 116, 0.22);
+    --panel-shadow: 0 28px 58px rgba(110, 64, 94, 0.24);
+    --radius-xl: 26px;
+    --radius-md: 16px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Hind Vadodara", "Noto Sans Gujarati", sans-serif;
+    color: var(--ink);
+    background:
+        radial-gradient(circle at 10% 14%, rgba(255, 222, 240, 0.72), transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(224, 204, 255, 0.62), transparent 42%),
+        linear-gradient(165deg, var(--bg-a) 0%, var(--bg-b) 100%);
+    padding: clamp(16px, 3.5vw, 28px);
+}
+
+.page-shell {
+    width: min(100%, 920px);
+    margin: 0 auto;
+    display: grid;
+    gap: 16px;
+}
+
+.page-header {
+    text-align: center;
+}
+
+.overline {
+    margin: 0;
+    color: var(--ink-soft);
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    font-size: clamp(0.82rem, 2.2vw, 0.95rem);
+}
+
+h1 {
+    margin: 6px 0 0;
+    font-family: "Noto Serif Gujarati", serif;
+    font-weight: 700;
+    font-size: clamp(1.9rem, 6vw, 2.9rem);
+    color: #4b2741;
+    letter-spacing: 0.01em;
+}
+
+.sound-row {
+    display: flex;
+    justify-content: center;
+}
+
+.sound-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(187, 148, 176, 0.4);
+    border-radius: 999px;
+    padding: 8px 14px;
+    box-shadow: 0 8px 20px rgba(137, 86, 116, 0.12);
+    user-select: none;
+    cursor: pointer;
+}
+
+.sound-toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.toggle-ui {
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: #dfd5ec;
+    position: relative;
+    transition: background 0.25s ease;
+}
+
+.toggle-ui::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    transition: transform 0.25s ease;
+}
+
+.sound-toggle input:checked + .toggle-ui {
+    background: linear-gradient(120deg, #e48fbf, #b996ff);
+}
+
+.sound-toggle input:checked + .toggle-ui::after {
+    transform: translateX(18px);
+}
+
+.toggle-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #6e4d61;
+}
+
+.scene {
+    display: flex;
+    justify-content: center;
+    perspective: 1850px;
+    perspective-origin: 50% 45%;
+}
+
+.invitation-shell {
+    position: relative;
+    width: min(92vw, 650px);
+    aspect-ratio: 3 / 4;
+    min-height: 500px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--panel-shadow);
+    transform-style: preserve-3d;
+    overflow: hidden;
+}
+
+.inner-card {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.7), transparent 60%),
+        linear-gradient(180deg, #fffefe 0%, #fff8fc 100%);
+    border: 1px solid rgba(206, 175, 199, 0.55);
+    display: grid;
+    place-items: center;
+    padding: clamp(20px, 4vw, 34px);
+    opacity: 0;
+    transform: scale(0.96) translateY(16px);
+    z-index: 1;
+}
+
+.inner-card-frame {
+    width: 100%;
+    max-width: 520px;
+    border: 1px dashed rgba(187, 149, 178, 0.5);
+    border-radius: 18px;
+    padding: clamp(18px, 3.6vw, 28px);
+    text-align: center;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.inner-card h2 {
+    margin: 0;
+    font-family: "Noto Serif Gujarati", serif;
+    color: #4f2f45;
+    font-size: clamp(1.5rem, 4.4vw, 2rem);
+}
+
+.inner-note {
+    margin: 8px auto 0;
+    max-width: 40ch;
+    font-size: 0.95rem;
+    color: #775a6f;
+}
+
+.image-placeholder {
+    margin-top: 16px;
+    border: 1.5px dashed rgba(205, 158, 188, 0.75);
+    border-radius: 14px;
+    min-height: 220px;
+    display: grid;
+    place-content: center;
+    gap: 6px;
+    background:
+        linear-gradient(135deg, rgba(253, 237, 248, 0.88), rgba(245, 235, 255, 0.88));
+    color: #855d79;
+}
+
+.image-placeholder p {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.image-placeholder small {
+    font-size: 0.86rem;
+}
+
+.cover {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: 8;
+}
+
+.cover::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(231, 208, 236, 0.65);
+    pointer-events: none;
+    z-index: 12;
+}
+
+.door {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background:
+        repeating-linear-gradient(
+            140deg,
+            rgba(255, 255, 255, 0.24) 0,
+            rgba(255, 255, 255, 0.24) 2px,
+            transparent 2px,
+            transparent 18px
+        ),
+        linear-gradient(160deg, var(--rose-100) 0%, var(--lavender-100) 100%);
+    border: 1px solid rgba(208, 168, 194, 0.64);
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    box-shadow: var(--door-shadow);
+}
+
+.door-left {
+    left: 0;
+    transform-origin: left center;
+}
+
+.door-right {
+    right: 0;
+    transform-origin: right center;
+}
+
+.door-design {
+    position: absolute;
+    inset: 9% 11%;
+    border: 1px solid rgba(210, 171, 194, 0.62);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    color: #865a78;
+    font-family: "Noto Serif Gujarati", serif;
+}
+
+.motif {
+    font-size: 1.1rem;
+    color: #a56688;
+}
+
+.door-text {
+    font-size: clamp(1rem, 2.8vw, 1.2rem);
+    letter-spacing: 0.03em;
+}
+
+.center-line {
+    position: absolute;
+    left: 50%;
+    top: 4%;
+    bottom: 4%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, transparent, rgba(201, 147, 178, 0.85), transparent);
+    z-index: 11;
+}
+
+.ribbon {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: min(88%, 560px);
+    height: 120px;
+    transform: translate(-50%, -50%);
+    z-index: 14;
+    pointer-events: none;
+}
+
+.ribbon-band {
+    position: absolute;
+    top: 50px;
+    height: 16px;
+    width: 45%;
+    background: linear-gradient(160deg, #f6c2df, #dc86b7);
+    box-shadow: 0 5px 14px rgba(132, 70, 102, 0.24);
+}
+
+.ribbon-band-left {
+    left: 0;
+    border-radius: 999px 8px 8px 999px;
+}
+
+.ribbon-band-right {
+    right: 0;
+    border-radius: 8px 999px 999px 8px;
+}
+
+.ribbon-tail {
+    position: absolute;
+    top: 58px;
+    width: 48px;
+    height: 36px;
+    background: linear-gradient(180deg, #f3b6d7 0%, #d86aa8 100%);
+    clip-path: polygon(0 0, 100% 0, 72% 100%, 50% 78%, 28% 100%);
+    filter: drop-shadow(0 5px 8px rgba(118, 54, 89, 0.28));
+}
+
+.ribbon-tail-left {
+    left: calc(50% - 54px);
+    transform: rotate(4deg);
+}
+
+.ribbon-tail-right {
+    right: calc(50% - 54px);
+    transform: scaleX(-1) rotate(4deg);
+}
+
+.ribbon-knot {
+    position: absolute;
+    top: 39px;
+    left: 50%;
+    width: 70px;
+    height: 36px;
+    transform: translateX(-50%);
+    border-radius: 16px;
+    background: linear-gradient(165deg, #f8d0e7 0%, #d875ad 100%);
+    box-shadow:
+        inset 0 -5px 8px rgba(129, 60, 96, 0.22),
+        0 8px 16px rgba(107, 52, 80, 0.22);
+}
+
+.ribbon-knot::before,
+.ribbon-knot::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #fbdff0, #e08bbd);
+}
+
+.ribbon-knot::before {
+    left: -16px;
+}
+
+.ribbon-knot::after {
+    right: -16px;
+}
+
+.open-button {
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(173, 118, 152, 0.62);
+    background: linear-gradient(160deg, rgba(255, 242, 249, 0.96), rgba(247, 236, 255, 0.96));
+    color: #6e3f5e;
+    border-radius: 999px;
+    padding: 11px 22px;
+    font-family: inherit;
+    font-size: clamp(0.9rem, 2.45vw, 1.02rem);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(122, 73, 105, 0.2);
+    z-index: 15;
+    transition: transform 0.26s ease, box-shadow 0.26s ease, opacity 0.35s ease;
+}
+
+.open-button:hover,
+.open-button:focus-visible {
+    transform: translate(-50%, -52%);
+    box-shadow: 0 12px 24px rgba(122, 73, 105, 0.24);
+}
+
+.open-button:focus-visible {
+    outline: 2px solid rgba(184, 127, 161, 0.55);
+    outline-offset: 2px;
+}
+
+.open-button:disabled {
+    cursor: default;
+}
+
+.sparkles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 16;
+}
+
+.sparkle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+    border-radius: 2px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 209, 120, 0.88));
+    box-shadow: 0 0 10px rgba(255, 220, 150, 0.8);
+}
+
+.sparkle.s1  { --dx: -210px; --dy: -130px; --d: 10ms;  }
+.sparkle.s2  { --dx: -170px; --dy: -188px; --d: 55ms;  }
+.sparkle.s3  { --dx: -88px;  --dy: -160px; --d: 90ms;  }
+.sparkle.s4  { --dx: -20px;  --dy: -202px; --d: 130ms; }
+.sparkle.s5  { --dx: 74px;   --dy: -176px; --d: 180ms; }
+.sparkle.s6  { --dx: 148px;  --dy: -130px; --d: 225ms; }
+.sparkle.s7  { --dx: 204px;  --dy: -70px;  --d: 265ms; }
+.sparkle.s8  { --dx: -198px; --dy: -58px;  --d: 130ms; }
+.sparkle.s9  { --dx: -120px; --dy: 46px;   --d: 190ms; }
+.sparkle.s10 { --dx: 126px;  --dy: 54px;   --d: 235ms; }
+.sparkle.s11 { --dx: 188px;  --dy: -20px;  --d: 265ms; }
+.sparkle.s12 { --dx: 30px;   --dy: -130px; --d: 300ms; }
+
+/* Step 1: ribbon untie */
+.invitation-shell.is-untying .open-button {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(0.95);
+}
+
+.invitation-shell.is-untying .ribbon-band-left {
+    animation: ribbonLeftFly 0.85s cubic-bezier(0.28, 0.74, 0.2, 1) forwards;
+}
+
+.invitation-shell.is-untying .ribbon-band-right {
+    animation: ribbonRightFly 0.85s cubic-bezier(0.28, 0.74, 0.2, 1) forwards;
+}
+
+.invitation-shell.is-untying .ribbon-tail-left {
+    animation: tailLeftFly 0.9s ease-out forwards;
+}
+
+.invitation-shell.is-untying .ribbon-tail-right {
+    animation: tailRightFly 0.9s ease-out forwards;
+}
+
+.invitation-shell.is-untying .ribbon-knot {
+    animation: knotRelease 0.75s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+
+/* Step 2: temple door opening */
+.invitation-shell.is-opening .door-left {
+    animation: doorOpenLeft 1.2s cubic-bezier(0.66, 0.02, 0.16, 1) forwards;
+}
+
+.invitation-shell.is-opening .door-right {
+    animation: doorOpenRight 1.2s cubic-bezier(0.66, 0.02, 0.16, 1) forwards;
+}
+
+.invitation-shell.is-opening .center-line {
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+/* Step 3: inside card reveal + sparkle burst */
+.invitation-shell.is-opened .inner-card {
+    animation: innerReveal 0.8s ease-out forwards;
+}
+
+.invitation-shell.is-opened .sparkle {
+    animation: sparkleBurst 1.15s ease-out forwards;
+    animation-delay: var(--d);
+}
+
+@keyframes ribbonLeftFly {
+    0%   { transform: translateX(0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(-150px, -24px) rotate(-16deg) scale(0.9); opacity: 0; }
+}
+
+@keyframes ribbonRightFly {
+    0%   { transform: translateX(0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(150px, -24px) rotate(16deg) scale(0.9); opacity: 0; }
+}
+
+@keyframes tailLeftFly {
+    0%   { transform: rotate(4deg) translateX(0); opacity: 1; }
+    100% { transform: rotate(-22deg) translate(-132px, -52px) scale(0.85); opacity: 0; }
+}
+
+@keyframes tailRightFly {
+    0%   { transform: scaleX(-1) rotate(4deg) translateX(0); opacity: 1; }
+    100% { transform: scaleX(-1) rotate(-22deg) translate(-132px, -52px) scale(0.85); opacity: 0; }
+}
+
+@keyframes knotRelease {
+    0%   { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
+    40%  { transform: translateX(-50%) scale(1.06) rotate(-4deg); opacity: 1; }
+    100% { transform: translateX(-50%) scale(0.5) rotate(10deg) translateY(-34px); opacity: 0; }
+}
+
+@keyframes doorOpenLeft {
+    0%   { transform: rotateY(0deg); filter: brightness(1); }
+    100% { transform: rotateY(-108deg); filter: brightness(0.9); }
+}
+
+@keyframes doorOpenRight {
+    0%   { transform: rotateY(0deg); filter: brightness(1); }
+    100% { transform: rotateY(108deg); filter: brightness(0.9); }
+}
+
+@keyframes innerReveal {
+    0%   { opacity: 0; transform: scale(0.96) translateY(16px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes sparkleBurst {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.25);
+    }
+    20% {
+        opacity: 0.95;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(30deg) scale(1.08);
+    }
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+@media (max-width: 640px) {
+    .invitation-shell {
+        width: min(95vw, 520px);
+        min-height: 460px;
+    }
+
+    .ribbon {
+        top: 44%;
+    }
+
+    .ribbon-band {
+        top: 46px;
+    }
+
+    .open-button {
+        width: min(90%, 360px);
+        padding: 10px 16px;
+    }
+
+    .door-design {
+        inset: 10% 8%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}

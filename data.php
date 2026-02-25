@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'ganesh_line' => 'શ્રી ગણેશાય નમઃ',
     'ganesh_image' => 'assets/images/ganesha.png',
+    'door_center_image' => 'assets/images/krishna and radha.png',
     'title' => 'સીમંત વિધિ ',
 
     'mother_name' => 'ક્રિમા',
