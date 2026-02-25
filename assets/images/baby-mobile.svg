@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-labelledby="title desc">
+  <title id="title">Baby mobile ornament</title>
+  <desc id="desc">A hanging baby mobile with stars, moon, and beads.</desc>
+  <defs>
+    <linearGradient id="m1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5e9d8"/>
+      <stop offset="100%" stop-color="#dfbd92"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="18" y="18" width="184" height="6" rx="3" fill="#a88762"/>
+  <path d="M110 24v26c0 18-12 32-30 38" fill="none" stroke="#9a7651" stroke-width="4" stroke-linecap="round"/>
+  <path d="M110 24v26c0 18 12 32 30 38" fill="none" stroke="#9a7651" stroke-width="4" stroke-linecap="round"/>
+  <line x1="80" y1="88" x2="140" y2="88" stroke="#9a7651" stroke-width="4" stroke-linecap="round"/>
+
+  <g transform="translate(66,90)">
+    <line x1="0" y1="0" x2="0" y2="30" stroke="#9a7651" stroke-width="2.5"/>
+    <circle cx="0" cy="39" r="9" fill="#d6b089"/>
+  </g>
+
+  <g transform="translate(96,88)">
+    <line x1="0" y1="0" x2="0" y2="38" stroke="#9a7651" stroke-width="2.5"/>
+    <path d="M0 52c-7 0-12-5-12-12 0-5 3-9 7-11 2-8 9-13 17-13 10 0 18 8 18 18 0 10-8 18-18 18z" fill="url(#m1)"/>
+  </g>
+
+  <g transform="translate(140,90)">
+    <line x1="0" y1="0" x2="0" y2="30" stroke="#9a7651" stroke-width="2.5"/>
+    <path d="M0 28l3 7h8l-6 5 2 8-7-4-7 4 2-8-6-5h8z" fill="#d6b089"/>
+  </g>
+
+  <g transform="translate(158,46)">
+    <path d="M8 0c3 5 6 8 10 11-4 3-7 6-10 11-3-5-6-8-10-11 4-3 7-6 10-11z" fill="#e1c49f"/>
+  </g>
+</svg>
