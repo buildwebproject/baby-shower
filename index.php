@@ -154,6 +154,9 @@ $timeText    = (string)($invitation['time_text']    ?? '');
 $venueName   = (string)($invitation['venue_name']   ?? '');
 $fullAddress = (string)($invitation['full_address'] ?? '');
 $city        = (string)($invitation['city']         ?? '');
+$venueImage  = firstExistingPublicPath([
+    (string)($invitation['venue_image'] ?? ''),
+], '');
 
 $leadLines = stringList($invitation['lead_lines'] ?? []);
 if ($leadLines === []) {
@@ -1230,6 +1233,205 @@ if ($qrEnabled) {
         }
         .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 7px 18px rgba(120,20,20,0.38); }
 
+        /* BABY PLAY WIDGET START */
+        .baby-play {
+            position: fixed;
+            right: 18px;
+            bottom: 16px;
+            z-index: 10020;
+            width: 72px;
+            height: 72px;
+            color: #5e2d4f;
+            font-family: 'Hind Vadodara', 'Noto Sans Gujarati', sans-serif;
+            user-select: none;
+        }
+
+        body:not(.gate-opened) .baby-play {
+            display: none;
+        }
+
+        .baby-play .baby-play__controls {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .baby-play .baby-play__tooltip {
+            position: absolute;
+            right: 0;
+            bottom: calc(100% + 8px);
+            max-width: 210px;
+            border-radius: 10px;
+            border: 1px solid rgba(161, 106, 145, 0.34);
+            background: rgba(255, 247, 252, 0.97);
+            color: #6e3d61;
+            font-size: 0.74rem;
+            line-height: 1.35;
+            padding: 7px 10px;
+            box-shadow: 0 7px 16px rgba(87, 51, 90, 0.2);
+            opacity: 0;
+            transform: translateY(6px) scale(0.98);
+            transform-origin: right bottom;
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .baby-play .baby-play__tooltip::after {
+            content: '';
+            position: absolute;
+            right: 14px;
+            top: 100%;
+            width: 9px;
+            height: 9px;
+            border-right: 1px solid rgba(161, 106, 145, 0.34);
+            border-bottom: 1px solid rgba(161, 106, 145, 0.34);
+            background: rgba(255, 247, 252, 0.97);
+            transform: translateY(-4px) rotate(45deg);
+        }
+
+        .baby-play.show-tip .baby-play__tooltip,
+        .baby-play:hover .baby-play__tooltip,
+        .baby-play:focus-within .baby-play__tooltip,
+        .baby-play.is-dragging .baby-play__tooltip {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .baby-play .baby-play__avatar {
+            position: relative;
+            width: 72px;
+            height: 72px;
+            border: 1px solid rgba(181, 122, 166, 0.45);
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.94), transparent 44%),
+                linear-gradient(165deg, #ffeef7 0%, #ffd8ea 100%);
+            display: grid;
+            place-items: center;
+            cursor: grab;
+            touch-action: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 18px rgba(153, 88, 128, 0.26);
+        }
+
+        .baby-play .baby-play__avatar:active {
+            cursor: grabbing;
+        }
+
+        .baby-play .baby-play__avatar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(153, 88, 128, 0.34);
+        }
+
+        .baby-play .baby-play__emoji {
+            font-size: 2.2rem;
+            line-height: 1;
+            transform: translateY(2px);
+            pointer-events: none;
+        }
+
+        .baby-play .baby-play__avatar-img {
+            display: none;
+            width: 46px;
+            height: 46px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .baby-play.has-custom-image .baby-play__avatar-img {
+            display: block;
+        }
+
+        .baby-play.has-custom-image .baby-play__emoji {
+            display: none;
+        }
+
+        .baby-play .baby-play__cheek {
+            position: absolute;
+            bottom: 21px;
+            width: 11px;
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(234, 106, 130, 0.6);
+            opacity: 0;
+            filter: blur(0.2px);
+            transition: opacity 0.22s ease;
+        }
+
+        .baby-play .baby-play__cheek--left {
+            left: 17px;
+            transform: rotate(-10deg);
+        }
+
+        .baby-play .baby-play__cheek--right {
+            right: 17px;
+            transform: rotate(10deg);
+        }
+
+        .baby-play .baby-play__hearts {
+            position: absolute;
+            left: 35px;
+            bottom: 40px;
+            width: 0;
+            height: 0;
+            overflow: visible;
+            pointer-events: none;
+        }
+
+        .baby-play .baby-play__heart {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            opacity: 0;
+            transform: translate(var(--heart-x, 0px), 0) scale(var(--heart-size, 1));
+            font-size: calc(14px * var(--heart-size, 1));
+            line-height: 1;
+            animation: baby-play-heart-float var(--heart-duration, 1120ms) ease-out forwards;
+            filter: drop-shadow(0 2px 3px rgba(186, 95, 141, 0.24));
+        }
+
+        .baby-play .baby-play__audio {
+            display: none;
+        }
+
+        .baby-play.is-laughing .baby-play__avatar {
+            animation: baby-play-laugh 0.78s cubic-bezier(0.2, 0.68, 0.2, 1);
+        }
+
+        .baby-play.is-laughing .baby-play__cheek {
+            opacity: 0.95;
+        }
+
+        .baby-play.is-dragging .baby-play__avatar {
+            transform: scale(1.04);
+            box-shadow: 0 13px 24px rgba(153, 88, 128, 0.36);
+        }
+
+        @keyframes baby-play-laugh {
+            0% { transform: scale(1) rotate(0deg); }
+            20% { transform: scale(1.08) rotate(-8deg); }
+            40% { transform: scale(1.1) rotate(8deg); }
+            60% { transform: scale(1.08) rotate(-6deg); }
+            80% { transform: scale(1.04) rotate(4deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes baby-play-heart-float {
+            0% {
+                opacity: 0;
+                transform: translate(var(--heart-x, 0px), 0) scale(var(--heart-size, 1));
+            }
+            15% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--heart-end-x, 8px), -84px) scale(calc(var(--heart-size, 1) * 1.16));
+            }
+        }
+        /* BABY PLAY WIDGET END */
+
         /* ── Responsive ──────────────────────────── */
         @media (max-width: 420px) {
             .opening-stage {
@@ -1276,6 +1478,41 @@ if ($qrEnabled) {
             .btn-row { grid-template-columns: 1fr; }
             .inv-card { padding-bottom: 64px; overflow: hidden; }
             .inv-card::before { bottom: 72px; }
+
+            .baby-play {
+                left: auto;
+                right: 12px;
+                bottom: 8px;
+                width: 62px;
+                height: 62px;
+            }
+
+            .baby-play .baby-play__tooltip {
+                right: -2px;
+                max-width: min(180px, calc(100vw - 28px));
+                font-size: 0.67rem;
+                padding: 6px 9px;
+                white-space: normal;
+            }
+
+            .baby-play .baby-play__avatar {
+                width: 62px;
+                height: 62px;
+            }
+
+            .baby-play .baby-play__emoji {
+                font-size: 1.92rem;
+            }
+
+            .baby-play .baby-play__avatar-img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .baby-play .baby-play__hearts {
+                left: 30px;
+                bottom: 34px;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1490,6 +1727,22 @@ if ($qrEnabled) {
     <?php endif; ?>
 
 </div><!-- /card-wrap -->
+
+<!-- BABY PLAY WIDGET START -->
+<div id="babyPlayWidget" class="baby-play" data-baby-image="">
+    <div class="baby-play__controls">
+        <p id="babyPlayTooltip" class="baby-play__tooltip">બેબી પર ટેપ કરો, હવર કરો અથવા ખેંચીને ખસેડો</p>
+        <button type="button" id="babyPlayAvatar" class="baby-play__avatar" aria-label="બેબીને હસાવો" title="બેબી પર ટેપ કરો, હવર કરો અથવા ખેંચીને ખસેડો">
+            <span class="baby-play__emoji" aria-hidden="true">👶</span>
+            <img class="baby-play__avatar-img" src="" alt="બેબી">
+            <span class="baby-play__cheek baby-play__cheek--left" aria-hidden="true"></span>
+            <span class="baby-play__cheek baby-play__cheek--right" aria-hidden="true"></span>
+        </button>
+        <div id="babyPlayHearts" class="baby-play__hearts" aria-hidden="true"></div>
+        <audio id="babyPlayAudio" class="baby-play__audio" src="assets/freesound_community-baby-giggle-85158.mp3" preload="none"></audio>
+    </div>
+</div>
+<!-- BABY PLAY WIDGET END -->
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="assets/js/main.js?v=<?php echo rawurlencode((string)(@filemtime(__DIR__ . '/assets/js/main.js') ?: time())); ?>"></script>
