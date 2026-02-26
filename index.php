@@ -100,10 +100,6 @@ $ganeshImage = firstExistingPublicPath([
     (string)($invitation['ganesh_image'] ?? ''),
     'assets/images/ganesha.png',
 ], 'assets/images/ganesha.png');
-$doorCenterImage = firstExistingPublicPath([
-    (string)($invitation['door_center_image'] ?? ''),
-    'assets/images/krishna and radha.png',
-], 'assets/images/krishna and radha.png');
 
 $decorCandidates = array_merge(
     stringList($invitation['decor_images'] ?? []),
@@ -534,26 +530,6 @@ if ($qrEnabled) {
             background: linear-gradient(180deg, transparent, rgba(190, 130, 175, 0.8), transparent);
             z-index: 4;
             transition: opacity 0.3s ease;
-        }
-
-        .door-top-decor {
-            position: absolute;
-            left: 50%;
-            top: 47%;
-            transform: translate(-50%, -100%);
-            width: 130px;
-            
-            pointer-events: none;
-            z-index: 5;
-            display: grid;
-            place-items: center;
-        }
-
-        .door-top-decor .center-deity {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 10px rgba(124, 75, 109, 0.3));
         }
 
         .opening-ribbon {
@@ -1454,9 +1430,6 @@ if ($qrEnabled) {
             .door-inner {
                 padding-top: 26px;
             }
-            .door-top-decor {
-                
-            }
             .opening-btn {
                 width: min(92%, 320px);
                 font-size: clamp(0.78rem, 3.2vw, 0.9rem);
@@ -1546,9 +1519,6 @@ if ($qrEnabled) {
             </div>
         </div>
         <span class="door-center-line" aria-hidden="true"></span>
-        <div class="door-top-decor" aria-hidden="true">
-            <img src="<?php echo e(assetUrl($doorCenterImage)); ?>" alt="" class="center-deity">
-        </div>
 
         <div class="opening-ribbon" aria-hidden="true">
             <span class="ribbon-band left"></span>
@@ -1599,9 +1569,7 @@ if ($qrEnabled) {
 
         <!-- Corner ornaments -->
         <img src="<?php echo e(assetUrl($cornerImages['top_left'])); ?>" alt="" class="orn orn-tl">
-        <img src="<?php echo e(assetUrl($cornerImages['top_right'])); ?>" alt="" class="orn orn-tr">
-        <img src="<?php echo e(assetUrl($cornerImages['bottom_left'])); ?>" alt="" class="orn orn-bl">
-        <img src="<?php echo e(assetUrl($cornerImages['bottom_right'])); ?>" alt="" class="orn orn-br">
+        <img src="<?php echo e(assetUrl($cornerImages['bottom_right'])); ?>" alt="" class="orn orn-tr">
 
         <div class="card-content">
 
