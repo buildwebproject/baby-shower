@@ -41,7 +41,7 @@ return [
         'નિશિત પરિવાર',
     ],
 
-    'google_maps_url' => 'https://share.google/kWK4z4pDiLebfvpTQ',
+    'google_maps_url' => 'https://maps.app.goo.gl/dpNe2PrEfzKqUfcV7',
 
     // Optional
     'contact_phone' => '',

@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-$invitation = require __DIR__ . '/data.php';
+require __DIR__ . '/includes/invitation_store.php';
+$invitation = invitation_load_data();
 
 if (!function_exists('imagecreatetruecolor')) {
     header('Content-Type: image/png');

@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-$invitation = require __DIR__ . '/data.php';
+require __DIR__ . '/includes/invitation_store.php';
+$invitation = invitation_load_data();
 
 function e(string $value): string
 {
@@ -154,6 +155,42 @@ $venueImage  = firstExistingPublicPath([
     (string)($invitation['venue_image'] ?? ''),
 ], '');
 
+$memorySlides = [
+    [
+        'label' => 'Couple Photo',
+        'path' => firstExistingPublicPath([
+            (string)($invitation['memory_couple_photo'] ?? ''),
+            (string)($invitation['couple_photo'] ?? ''),
+            'assets/images/image-1.png',
+        ], 'assets/images/image-1.png'),
+    ],
+    [
+        'label' => 'Baby Scan Photo',
+        'path' => firstExistingPublicPath([
+            (string)($invitation['memory_baby_scan_photo'] ?? ''),
+            (string)($invitation['baby_scan_photo'] ?? ''),
+            'assets/images/image-2.png',
+        ], 'assets/images/image-2.png'),
+    ],
+    [
+        'label' => 'Family Photo',
+        'path' => firstExistingPublicPath([
+            (string)($invitation['memory_family_photo'] ?? ''),
+            (string)($invitation['family_photo'] ?? ''),
+            'assets/images/image-3.png',
+        ], 'assets/images/image-3.png'),
+    ],
+];
+
+$eventDateTimeRaw = trim((string)($invitation['event_datetime'] ?? ''));
+$countdownTargetMs = null;
+if ($eventDateTimeRaw !== '') {
+    $eventTimestamp = strtotime($eventDateTimeRaw);
+    if ($eventTimestamp !== false && $eventTimestamp > time()) {
+        $countdownTargetMs = $eventTimestamp * 1000;
+    }
+}
+
 $leadLines = stringList($invitation['lead_lines'] ?? []);
 if ($leadLines === []) {
     $leadLines = [
@@ -186,6 +223,10 @@ if ($inviters === []) {
 $phoneDisplay    = (string)($invitation['contact_phone']    ?? '');
 $phoneDial       = preg_replace('/[^0-9+]/', '', $phoneDisplay) ?: '';
 $mapsUrl         = (string)($invitation['google_maps_url']  ?? '#');
+$mapsUrl         = trim($mapsUrl);
+if ($mapsUrl === '' || $mapsUrl === 'https://share.google/kWK4z4pDiLebfvpTQ') {
+    $mapsUrl = 'https://maps.app.goo.gl/dpNe2PrEfzKqUfcV7';
+}
 $whatsAppMessage = trim((string)($invitation['whatsapp_message'] ?? ''));
 
 $ogTitle = trim($title) !== '' ? trim($title) : 'સીમંત વિધિ (બેબી શાવર)';
@@ -326,6 +367,207 @@ if ($qrEnabled) {
             outline: none;
         }
 
+        /* ── Top Balloon Mini Interaction ───────── */
+        .mini-balloons {
+            position: fixed;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(220px, calc(100vw - 24px));
+            height: 80px;
+            z-index: 10030;
+            pointer-events: none;
+        }
+
+        body:not(.gate-opened) .mini-balloons {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        .mini-balloons__items {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .mini-balloon {
+            position: absolute;
+            top: 8px;
+            width: 48px;
+            height: 62px;
+            border: 1px solid rgba(182, 96, 149, 0.52);
+            border-radius: 50% 50% 46% 46%;
+            display: grid;
+            place-items: center;
+            color: rgba(255, 255, 255, 0.94);
+            text-shadow: 0 1px 2px rgba(95, 43, 73, 0.24);
+            font-size: 1.18rem;
+            box-shadow: 0 6px 14px rgba(138, 77, 111, 0.24);
+            cursor: pointer;
+            pointer-events: auto;
+            animation: miniBalloonFloat 3.8s ease-in-out infinite;
+            transition: transform 0.18s ease, opacity 0.2s ease;
+            will-change: transform, opacity;
+        }
+
+        .mini-balloon::before {
+            content: '';
+            position: absolute;
+            top: calc(100% - 2px);
+            left: 50%;
+            width: 2px;
+            height: 18px;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, rgba(192, 119, 162, 0.86), rgba(192, 119, 162, 0.05));
+        }
+
+        .mini-balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            width: 9px;
+            height: 8px;
+            transform: translateX(-50%);
+            border-radius: 2px;
+            background: rgba(190, 116, 159, 0.9);
+        }
+
+        .mini-balloon:nth-child(1) {
+            left: 8px;
+            background: linear-gradient(165deg, #ff9fd2 0%, #e056a0 100%);
+            animation-delay: 0s;
+        }
+
+        .mini-balloon:nth-child(2) {
+            left: calc(50% - 24px);
+            background: linear-gradient(165deg, #ffb0cf 0%, #de6ca6 100%);
+            animation-delay: 0.25s;
+        }
+
+        .mini-balloon:nth-child(3) {
+            right: 8px;
+            background: linear-gradient(165deg, #ff9bc4 0%, #d95694 100%);
+            animation-delay: 0.55s;
+        }
+
+        .mini-balloon:hover {
+            transform: translateY(-2px) scale(1.03);
+        }
+
+        .mini-balloon.is-popping {
+            animation: miniBalloonPop 340ms cubic-bezier(0.2, 0.68, 0.2, 1) forwards;
+            pointer-events: none;
+        }
+
+        .mini-balloon.is-popped {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            animation: none;
+            transform: scale(0.4);
+        }
+
+        .mini-balloons__msg {
+            position: absolute;
+            top: 74px;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px);
+            width: max-content;
+            max-width: min(320px, calc(100vw - 24px));
+            border: 1px solid rgba(177, 104, 150, 0.5);
+            border-radius: 999px;
+            background: linear-gradient(165deg, rgba(255, 241, 249, 0.98), rgba(248, 227, 241, 0.98));
+            color: #7a335c;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            text-align: center;
+            padding: 8px 12px;
+            box-shadow: 0 8px 18px rgba(129, 70, 107, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.26s ease, transform 0.26s ease;
+        }
+
+        .mini-balloons.show-msg .mini-balloons__msg {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .mini-confetti {
+            position: absolute;
+            left: 50%;
+            top: 48%;
+            width: 8px;
+            height: 12px;
+            border-radius: 2px;
+            opacity: 0;
+            pointer-events: none;
+            animation: miniConfettiBlast 680ms ease-out forwards;
+            transform: translate(-50%, -50%) rotate(0deg);
+        }
+
+        .scroll-petals {
+            position: fixed;
+            inset: 0;
+            z-index: 10005;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .scroll-petal {
+            position: absolute;
+            top: -10vh;
+            left: 50vw;
+            width: var(--petal-size, 10px);
+            height: calc(var(--petal-size, 10px) * 1.36);
+            opacity: var(--petal-opacity, 0.28);
+            background: linear-gradient(165deg, rgba(255, 215, 232, 0.92), rgba(255, 176, 210, 0.72));
+            border-radius: 70% 48% 72% 46%;
+            box-shadow: inset -1px -1px 3px rgba(255, 143, 187, 0.22);
+            transform: translate3d(0, 0, 0) rotate(0deg);
+            will-change: transform, opacity;
+            animation: scrollPetalFall var(--petal-duration, 11200ms) linear forwards;
+        }
+
+        @keyframes scrollPetalFall {
+            0% {
+                opacity: 0;
+                transform: translate3d(0, -6vh, 0) rotate(0deg);
+            }
+            12% {
+                opacity: var(--petal-opacity, 0.28);
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--petal-drift, 42px), 112vh, 0) rotate(var(--petal-rotate, 260deg));
+            }
+        }
+
+        @keyframes miniBalloonFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-7px); }
+        }
+
+        @keyframes miniBalloonPop {
+            0% { opacity: 1; transform: scale(1); }
+            45% { opacity: 1; transform: scale(1.16); }
+            100% { opacity: 0; transform: scale(0.48); }
+        }
+
+        @keyframes miniConfettiBlast {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px))) rotate(var(--rot, 0deg));
+            }
+        }
+
         /* ── Opening cover experience ───────────── */
         .opening-stage {
             display: block;
@@ -416,6 +658,14 @@ if ($qrEnabled) {
             filter: drop-shadow(0 2px 7px rgba(129, 82, 110, 0.25));
         }
 
+        .opening-ganesh-text {
+            margin-top: 4px;
+            color: #6b3f1d;
+            font-size: 0.86rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+        }
+
         .opening-shell {
             position: relative;
             width: 100%;
@@ -435,6 +685,85 @@ if ($qrEnabled) {
             perspective: 1450px;
             overflow: hidden;
         }
+
+        .opening-loader {
+            position: absolute;
+            inset: 10px;
+            border-radius: 14px;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at 26% 24%, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0) 36%),
+                linear-gradient(150deg, rgba(255, 250, 253, 0.93) 0%, rgba(246, 236, 255, 0.96) 52%, rgba(235, 244, 255, 0.96) 100%);
+            border: 1px solid rgba(196, 160, 193, 0.35);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+            transition: opacity 0.28s ease;
+            overflow: hidden;
+        }
+
+        .opening-loader::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            bottom: -30%;
+            left: -55%;
+            width: 38%;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.52) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(10deg);
+            animation: loaderSweep 1.35s linear infinite;
+        }
+
+        .opening-loader-inner {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            gap: 10px;
+            color: #7b4f67;
+        }
+
+        .opening-loader-ring {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 4px solid rgba(216, 166, 196, 0.42);
+            border-top-color: rgba(160, 97, 133, 0.92);
+            animation: loaderSpin 1s linear infinite;
+            box-shadow: 0 0 16px rgba(174, 122, 153, 0.18);
+        }
+
+        .opening-loader-text {
+            font-size: 0.92rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            text-align: center;
+        }
+
+        .opening-loader-dots {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: 2px;
+            transform: translateY(-1px);
+        }
+
+        .opening-loader-dots span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(145, 86, 120, 0.86);
+            animation: loaderDot 1s ease-in-out infinite;
+        }
+
+        .opening-loader-dots span:nth-child(2) { animation-delay: 0.18s; }
+        .opening-loader-dots span:nth-child(3) { animation-delay: 0.36s; }
 
         .opening-door {
             position: absolute;
@@ -530,6 +859,29 @@ if ($qrEnabled) {
             background: linear-gradient(180deg, transparent, rgba(190, 130, 175, 0.8), transparent);
             z-index: 4;
             transition: opacity 0.3s ease;
+        }
+
+        .opening-swastik {
+            position: absolute;
+            left: 50%;
+            top: 9%;
+            transform: translate(-50%, -50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: #b14b84;
+            font-size: 1.42rem;
+            font-weight: 700;
+            line-height: 1;
+            background: radial-gradient(circle at 30% 30%, #ffeef8 0%, #f7cce3 52%, #e49cc3 100%);
+            border: 1px solid rgba(178, 93, 142, 0.44);
+            box-shadow:
+                inset 0 2px 3px rgba(255, 255, 255, 0.56),
+                0 6px 14px rgba(126, 64, 101, 0.22);
+            z-index: 6;
+            pointer-events: none;
         }
 
         .opening-ribbon {
@@ -743,6 +1095,16 @@ if ($qrEnabled) {
             opacity: 0;
         }
 
+        .opening-shell.is-opening .opening-loader,
+        .opening-shell.is-opened .opening-loader {
+            opacity: 1;
+        }
+
+        .opening-shell.is-opened .opening-loader {
+            animation: loaderOut 0.42s ease forwards;
+            animation-delay: 0.14s;
+        }
+
         .opening-shell.is-opened .opening-sparkles span {
             animation: sparkleBurst 1.1s ease-out forwards;
             animation-delay: var(--delay);
@@ -788,6 +1150,26 @@ if ($qrEnabled) {
             0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
             20% { opacity: 0.96; }
             100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(25deg) scale(1.04); }
+        }
+
+        @keyframes loaderSpin {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes loaderSweep {
+            0% { transform: translateX(0) rotate(10deg); opacity: 0; }
+            12% { opacity: 0.88; }
+            70% { opacity: 0.88; }
+            100% { transform: translateX(430%) rotate(10deg); opacity: 0; }
+        }
+
+        @keyframes loaderDot {
+            0%, 100% { transform: translateY(0); opacity: 0.45; }
+            50% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        @keyframes loaderOut {
+            to { opacity: 0; transform: scale(0.98); }
         }
 
         .sr-only {
@@ -956,7 +1338,7 @@ if ($qrEnabled) {
 
         /* Ganesh Icon */
         .ganesh-wrap {
-            margin: 0 auto 4px;
+            margin: 50px auto 4px;
             width: 60px;
             height: 60px;
             display: grid;
@@ -1019,6 +1401,131 @@ if ($qrEnabled) {
             font-weight: 400;
             line-height: 1.7;
             margin-bottom: 4px;
+        }
+
+        .memory-slider {
+            margin: 12px auto 10px;
+        }
+
+        .memory-slider-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #8b1a1a;
+            margin-bottom: 8px;
+        }
+
+        .memory-slider-stage {
+            position: relative;
+            width: 158px;
+            height: 158px;
+            margin: 0 auto;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid rgba(168, 102, 139, 0.58);
+            box-shadow:
+                0 8px 20px rgba(136, 82, 119, 0.26),
+                inset 0 0 0 5px rgba(255, 196, 223, 0.4);
+            background: linear-gradient(165deg, #fff3f8 0%, #f7efff 100%);
+        }
+
+        .memory-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.95s ease;
+            z-index: 0;
+        }
+
+        .memory-slide.is-active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .memory-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .memory-slider-caption {
+            margin-top: 8px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #6d3a57;
+            min-height: 1.3em;
+        }
+
+        .memory-slider-dots {
+            margin-top: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .memory-slider-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(180, 125, 160, 0.38);
+            transition: transform 0.22s ease, background-color 0.22s ease;
+        }
+
+        .memory-slider-dot.is-active {
+            background: rgba(193, 86, 143, 0.96);
+            transform: scale(1.24);
+        }
+
+        .countdown-block {
+            margin: 12px auto 8px;
+            border: 1.5px solid rgba(171, 103, 144, 0.42);
+            border-radius: 12px;
+            background:
+                linear-gradient(170deg, rgba(255, 242, 250, 0.95), rgba(246, 233, 255, 0.95));
+            padding: 10px 12px;
+            box-shadow: 0 7px 16px rgba(121, 71, 108, 0.14);
+        }
+
+        .countdown-title {
+            color: #7f345f;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            margin-bottom: 8px;
+        }
+
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 7px;
+        }
+
+        .countdown-item {
+            border: 1px solid rgba(170, 111, 151, 0.32);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.65);
+            padding: 7px 4px 6px;
+        }
+
+        .countdown-value {
+            display: block;
+            color: #5f2248;
+            font-size: 1rem;
+            line-height: 1;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .countdown-label {
+            display: block;
+            margin-top: 3px;
+            color: #7c4c67;
+            font-size: 0.64rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
         }
 
         /* ── Dashed divider ──────────────────────── */
@@ -1085,7 +1592,7 @@ if ($qrEnabled) {
             background:
                 linear-gradient(160deg, #ffeef8 0%, #edf5ff 100%);
             border: 1.5px solid rgba(116, 167, 220, 0.45);
-            border-radius: 6px;
+            border-radius: 10px;
             padding: 18px 18px 14px;
             box-shadow:
                 0 0 0 5px rgba(255, 168, 214, 0.12),
@@ -1105,27 +1612,46 @@ if ($qrEnabled) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            border: 1.5px solid rgba(140,90,30,0.55);
-            border-radius: 6px;
-            background: linear-gradient(175deg, #f5e8c0, #e8d490);
-            color: #3a200a;
+            gap: 7px;
+            border: 1.5px solid rgba(176, 116, 160, 0.56);
+            border-radius: 12px;
+            background:
+                linear-gradient(160deg, rgba(255, 245, 252, 0.98) 0%, rgba(248, 234, 255, 0.98) 52%, rgba(236, 244, 255, 0.98) 100%);
+            color: #5f2f4f;
             font-family: inherit;
             font-size: clamp(0.75rem, 2.4vw, 0.85rem);
             font-weight: 700;
-            padding: 10px 8px;
+            padding: 11px 10px;
             cursor: pointer;
             text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 3px 8px rgba(100,70,20,0.15);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            box-shadow:
+                inset 0 0 0 2px rgba(255, 255, 255, 0.64),
+                0 5px 14px rgba(143, 92, 138, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ic-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+            pointer-events: none;
         }
 
         .ic-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(100,70,20,0.22);
+            border-color: rgba(176, 97, 152, 0.72);
+            box-shadow:
+                inset 0 0 0 2px rgba(255, 255, 255, 0.7),
+                0 8px 18px rgba(134, 77, 124, 0.27);
         }
 
-        .ic-btn svg { flex-shrink: 0; }
+        .ic-btn svg {
+            flex-shrink: 0;
+            stroke: #7d3f67;
+        }
 
         /* RSVP panel */
         .rsvp-panel {
@@ -1235,7 +1761,7 @@ if ($qrEnabled) {
         .baby-play .baby-play__tooltip {
             position: absolute;
             right: 0;
-            bottom: calc(100% + 8px);
+            bottom: calc(100% + 42px);
             max-width: 210px;
             border-radius: 10px;
             border: 1px solid rgba(161, 106, 145, 0.34);
@@ -1249,6 +1775,58 @@ if ($qrEnabled) {
             transform: translateY(6px) scale(0.98);
             transform-origin: right bottom;
             transition: opacity 0.22s ease, transform 0.22s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .baby-play .baby-play__blessing-toast {
+            position: absolute;
+            right: -2px;
+            bottom: calc(100% + 78px);
+            max-width: min(240px, calc(100vw - 26px));
+            border-radius: 999px;
+            border: 1px solid rgba(198, 109, 158, 0.44);
+            background: linear-gradient(165deg, rgba(255, 243, 250, 0.99), rgba(254, 230, 243, 0.99));
+            color: #7b305a;
+            font-size: 0.73rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            line-height: 1.25;
+            padding: 7px 11px;
+            box-shadow: 0 8px 18px rgba(122, 67, 99, 0.22);
+            opacity: 0;
+            transform: translateY(8px) scale(0.97);
+            transform-origin: right bottom;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 2;
+        }
+
+        .baby-play.show-blessing .baby-play__blessing-toast {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .baby-play.show-blessing .baby-play__tooltip {
+            opacity: 0;
+            transform: translateY(6px) scale(0.98);
+        }
+
+        .baby-play .baby-play__blessing-counter {
+            position: absolute;
+            right: -2px;
+            bottom: calc(100% + 8px);
+            border-radius: 999px;
+            border: 1px solid rgba(172, 114, 152, 0.38);
+            background: rgba(255, 247, 252, 0.96);
+            color: #6f3f61;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            line-height: 1;
+            padding: 7px 10px;
+            box-shadow: 0 6px 14px rgba(95, 59, 95, 0.17);
             pointer-events: none;
             white-space: nowrap;
         }
@@ -1305,6 +1883,20 @@ if ($qrEnabled) {
             line-height: 1;
             transform: translateY(2px);
             pointer-events: none;
+            transition: opacity 0.16s ease, transform 0.24s cubic-bezier(0.2, 0.68, 0.2, 1), filter 0.24s ease;
+            will-change: transform, opacity, filter;
+        }
+
+        .baby-play.is-mood-changing .baby-play__emoji {
+            opacity: 0;
+            transform: translateY(-4px) scale(0.88) rotate(-7deg);
+            filter: saturate(1.05);
+        }
+
+        .baby-play.is-mood-popped .baby-play__emoji {
+            opacity: 1;
+            transform: translateY(2px) scale(1.08);
+            filter: saturate(1.12);
         }
 
         .baby-play .baby-play__avatar-img {
@@ -1410,6 +2002,21 @@ if ($qrEnabled) {
 
         /* ── Responsive ──────────────────────────── */
         @media (max-width: 420px) {
+            .mini-balloons {
+                top: 6px;
+                width: min(190px, calc(100vw - 20px));
+                height: 72px;
+            }
+            .mini-balloon {
+                width: 42px;
+                height: 56px;
+                font-size: 1.04rem;
+            }
+            .mini-balloons__msg {
+                top: 66px;
+                font-size: 0.72rem;
+                padding: 7px 10px;
+            }
             .opening-stage {
                 border-radius: 10px;
                 padding: 14px 10px 12px;
@@ -1421,11 +2028,17 @@ if ($qrEnabled) {
                 font-size: clamp(1.8rem, 9vw, 2.35rem);
             }
             .opening-ganesh-wrap img {
-                width: 36px;
-                height: 36px;
+                width: 80px;
+                height: 80px;
             }
             .opening-shell {
                 border-radius: 14px;
+            }
+            .opening-swastik {
+                top: 8.5%;
+                width: 40px;
+                height: 40px;
+                font-size: 1.28rem;
             }
             .door-inner {
                 padding-top: 26px;
@@ -1462,10 +2075,27 @@ if ($qrEnabled) {
 
             .baby-play .baby-play__tooltip {
                 right: -2px;
+                bottom: calc(100% + 38px);
                 max-width: min(180px, calc(100vw - 28px));
                 font-size: 0.67rem;
                 padding: 6px 9px;
                 white-space: normal;
+            }
+
+            .baby-play .baby-play__blessing-toast {
+                right: -2px;
+                bottom: calc(100% + 68px);
+                max-width: min(200px, calc(100vw - 24px));
+                font-size: 0.64rem;
+                padding: 6px 9px;
+                white-space: normal;
+            }
+
+            .baby-play .baby-play__blessing-counter {
+                right: -2px;
+                bottom: calc(100% + 8px);
+                font-size: 0.62rem;
+                padding: 6px 8px;
             }
 
             .baby-play .baby-play__avatar {
@@ -1486,6 +2116,41 @@ if ($qrEnabled) {
                 left: 30px;
                 bottom: 34px;
             }
+
+            .memory-slider {
+                margin-top: 10px;
+            }
+
+            .memory-slider-stage {
+                width: 132px;
+                height: 132px;
+            }
+
+            .memory-slider-caption {
+                font-size: 0.67rem;
+            }
+
+            .countdown-block {
+                margin-top: 10px;
+                padding: 9px 10px;
+            }
+
+            .countdown-title {
+                font-size: 0.7rem;
+                margin-bottom: 6px;
+            }
+
+            .countdown-grid {
+                gap: 5px;
+            }
+
+            .countdown-value {
+                font-size: 0.9rem;
+            }
+
+            .countdown-label {
+                font-size: 0.58rem;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1497,6 +2162,16 @@ if ($qrEnabled) {
     data-page="invite"
     data-whatsapp-message="<?php echo e($whatsAppMessage); ?>"
 >
+<div id="scrollPetalsLayer" class="scroll-petals" aria-hidden="true"></div>
+
+<div id="miniBalloons" class="mini-balloons" aria-label="બલૂન મિની ગેમ">
+    <div class="mini-balloons__items" aria-hidden="false">
+        <button type="button" class="mini-balloon" aria-label="બલૂન પોપ 1">🎈</button>
+        <button type="button" class="mini-balloon" aria-label="બલૂન પોપ 2">🎈</button>
+        <button type="button" class="mini-balloon" aria-label="બલૂન પોપ 3">🎈</button>
+    </div>
+    <div id="miniBalloonsMsg" class="mini-balloons__msg" role="status" aria-live="polite">નાનકડા મહેમાન માટે શુભેચ્છા 🎉</div>
+</div>
 
 <div id="openingStage" class="opening-stage" aria-label="આમંત્રણ કવર">
     <div class="opening-head">
@@ -1505,9 +2180,19 @@ if ($qrEnabled) {
         <div class="opening-ganesh-wrap">
             <img src="<?php echo e(assetUrl($ganeshImage)); ?>" alt="ગણેશજી">
         </div>
+        <div class="opening-ganesh-text">શ્રી ગણેશાય નમઃ</div>
     </div>
 
     <div id="openingShell" class="opening-shell">
+        <div class="opening-loader" aria-hidden="true">
+            <div class="opening-loader-inner">
+                <span class="opening-loader-ring"></span>
+                <div class="opening-loader-text">
+                    આમંત્રણ ખુલી રહ્યું છે
+                    <span class="opening-loader-dots"><span></span><span></span><span></span></span>
+                </div>
+            </div>
+        </div>
         <div class="opening-door left">
             <div class="door-inner">
                 <span class="door-word">શુભ</span>
@@ -1519,6 +2204,7 @@ if ($qrEnabled) {
             </div>
         </div>
         <span class="door-center-line" aria-hidden="true"></span>
+        <span class="opening-swastik" aria-hidden="true">卐</span>
 
         <div class="opening-ribbon" aria-hidden="true">
             <span class="ribbon-band left"></span>
@@ -1606,6 +2292,43 @@ if ($qrEnabled) {
 
             <?php if ($programLine !== ''): ?>
                 <p class="invite-line"><?php echo e($programLine); ?></p>
+            <?php endif; ?>
+
+            <div id="photoMemorySlider" class="memory-slider" data-interval-ms="5000" aria-label="Photo memories">
+                <div class="memory-slider-title">Photo Memories</div>
+                <div class="memory-slider-stage" aria-live="polite">
+                    <?php foreach ($memorySlides as $index => $slide): ?>
+                        <figure class="memory-slide <?php echo $index === 0 ? 'is-active' : ''; ?>" data-label="<?php echo e($slide['label']); ?>" aria-hidden="<?php echo $index === 0 ? 'false' : 'true'; ?>">
+                            <img src="<?php echo e(assetUrl((string)$slide['path'])); ?>" alt="<?php echo e((string)$slide['label']); ?>">
+                        </figure>
+                    <?php endforeach; ?>
+                </div>
+                <p id="photoMemoryCaption" class="memory-slider-caption"><?php echo e((string)($memorySlides[0]['label'] ?? 'Photo Memory')); ?></p>
+                <div class="memory-slider-dots" aria-hidden="true">
+                    <?php foreach ($memorySlides as $index => $slide): ?>
+                        <span class="memory-slider-dot <?php echo $index === 0 ? 'is-active' : ''; ?>"></span>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <?php if ($countdownTargetMs !== null): ?>
+                <div id="eventCountdown" class="countdown-block" data-target-ms="<?php echo e((string)$countdownTargetMs); ?>">
+                    <div class="countdown-title">આનંદમય દિવસ માટે બાકી સમય</div>
+                    <div class="countdown-grid" role="timer" aria-live="polite">
+                        <div class="countdown-item">
+                            <span id="countdownDays" class="countdown-value">0</span>
+                            <span class="countdown-label">Days</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span id="countdownHours" class="countdown-value">0</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span id="countdownMinutes" class="countdown-value">0</span>
+                            <span class="countdown-label">Minutes</span>
+                        </div>
+                    </div>
+                </div>
             <?php endif; ?>
 
             <!-- ══ MEAL ══ -->
@@ -1699,7 +2422,9 @@ if ($qrEnabled) {
 <!-- BABY PLAY WIDGET START -->
 <div id="babyPlayWidget" class="baby-play" data-baby-image="">
     <div class="baby-play__controls">
-        <p id="babyPlayTooltip" class="baby-play__tooltip">બેબી પર ટેપ કરો, હવર કરો અથવા ખેંચીને ખસેડો</p>
+        <p id="babyPlayTooltip" class="baby-play__tooltip">બેબી પર ટેપ કરો અને આશીર્વાદ મોકલો</p>
+        <p id="babyPlayBlessingToast" class="baby-play__blessing-toast" role="status" aria-live="polite">આશીર્વાદ મોકલાયો 💖</p>
+        <p id="babyPlayBlessingCounter" class="baby-play__blessing-counter" aria-live="polite">આશીર્વાદ: 0</p>
         <button type="button" id="babyPlayAvatar" class="baby-play__avatar" aria-label="બેબીને હસાવો" title="બેબી પર ટેપ કરો, હવર કરો અથવા ખેંચીને ખસેડો">
             <span class="baby-play__emoji" aria-hidden="true">👶</span>
             <img class="baby-play__avatar-img" src="" alt="બેબી">

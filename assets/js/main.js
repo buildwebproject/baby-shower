@@ -184,6 +184,277 @@
         });
     }
 
+    function initPhotoMemorySlider() {
+        var slider = document.getElementById('photoMemorySlider');
+        if (!slider) {
+            return;
+        }
+
+        var slides = slider.querySelectorAll('.memory-slide');
+        var dots = slider.querySelectorAll('.memory-slider-dot');
+        var captionNode = document.getElementById('photoMemoryCaption');
+        var intervalMs = parseInt(slider.getAttribute('data-interval-ms') || '5000', 10);
+        var activeIndex = 0;
+        var timerId = 0;
+
+        if (!slides.length || slides.length < 2) {
+            return;
+        }
+        if (isNaN(intervalMs) || intervalMs < 1500) {
+            intervalMs = 5000;
+        }
+
+        function setActive(index) {
+            slides.forEach(function (slide, slideIndex) {
+                var isActive = slideIndex === index;
+                slide.classList.toggle('is-active', isActive);
+                slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+            });
+
+            dots.forEach(function (dot, dotIndex) {
+                dot.classList.toggle('is-active', dotIndex === index);
+            });
+
+            if (captionNode) {
+                captionNode.textContent = slides[index].getAttribute('data-label') || '';
+            }
+            activeIndex = index;
+        }
+
+        function nextSlide() {
+            setActive((activeIndex + 1) % slides.length);
+        }
+
+        function stop() {
+            if (timerId) {
+                window.clearInterval(timerId);
+                timerId = 0;
+            }
+        }
+
+        function start() {
+            stop();
+            timerId = window.setInterval(nextSlide, intervalMs);
+        }
+
+        slider.addEventListener('mouseenter', stop);
+        slider.addEventListener('mouseleave', start);
+        slider.addEventListener('focusin', stop);
+        slider.addEventListener('focusout', start);
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                stop();
+            } else {
+                start();
+            }
+        });
+
+        setActive(0);
+        start();
+    }
+
+    function initMiniBalloonInteraction() {
+        var host = document.getElementById('miniBalloons');
+        if (!host) {
+            return;
+        }
+
+        var balloons = host.querySelectorAll('.mini-balloon');
+        var messageTimerId = 0;
+        var confettiColors = ['#ff7fb8', '#ffa4ce', '#f26ca7', '#ffd166', '#8ecdf9', '#b690ff'];
+
+        function showMessage() {
+            host.classList.add('show-msg');
+            if (messageTimerId) {
+                window.clearTimeout(messageTimerId);
+            }
+            messageTimerId = window.setTimeout(function () {
+                host.classList.remove('show-msg');
+            }, 1800);
+        }
+
+        function burstConfetti(balloon) {
+            var rect = balloon.getBoundingClientRect();
+            var hostRect = host.getBoundingClientRect();
+            var baseX = rect.left + rect.width / 2 - hostRect.left;
+            var baseY = rect.top + rect.height / 2 - hostRect.top;
+            var count = 14;
+
+            for (var i = 0; i < count; i += 1) {
+                var piece = document.createElement('span');
+                var spread = 18 + Math.random() * 54;
+                var angle = (Math.PI * 2 * i) / count + (Math.random() * 0.6 - 0.3);
+                var tx = Math.cos(angle) * spread;
+                var ty = Math.sin(angle) * spread - 22;
+                var rot = (Math.random() * 320 - 160).toFixed(0) + 'deg';
+                var sizeW = (5 + Math.random() * 4).toFixed(1) + 'px';
+                var sizeH = (8 + Math.random() * 5).toFixed(1) + 'px';
+
+                piece.className = 'mini-confetti';
+                piece.style.left = baseX.toFixed(1) + 'px';
+                piece.style.top = baseY.toFixed(1) + 'px';
+                piece.style.width = sizeW;
+                piece.style.height = sizeH;
+                piece.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+                piece.style.setProperty('--tx', tx.toFixed(1) + 'px');
+                piece.style.setProperty('--ty', ty.toFixed(1) + 'px');
+                piece.style.setProperty('--rot', rot);
+                piece.style.animationDuration = (560 + Math.random() * 220).toFixed(0) + 'ms';
+                piece.style.animationDelay = (Math.random() * 90).toFixed(0) + 'ms';
+
+                host.appendChild(piece);
+                piece.addEventListener('animationend', function () {
+                    if (this && this.parentNode) {
+                        this.parentNode.removeChild(this);
+                    }
+                });
+            }
+        }
+
+        balloons.forEach(function (balloon) {
+            balloon.addEventListener('click', function () {
+                if (balloon.classList.contains('is-popping') || balloon.classList.contains('is-popped')) {
+                    return;
+                }
+
+                balloon.classList.add('is-popping');
+                burstConfetti(balloon);
+                showMessage();
+
+                window.setTimeout(function () {
+                    balloon.classList.remove('is-popping');
+                    balloon.classList.add('is-popped');
+                }, 400);
+            });
+        });
+    }
+
+    function initScrollPetals() {
+        var host = document.getElementById('scrollPetalsLayer');
+        if (!host) {
+            return;
+        }
+
+        var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduceMotion) {
+            return;
+        }
+
+        var maxPetals = 26;
+        var activePetals = 0;
+        var lastScrollY = window.scrollY || window.pageYOffset || 0;
+        var lastEmitAt = 0;
+        var emitCooldownMs = 140;
+
+        function createPetal() {
+            if (activePetals >= maxPetals && host.firstElementChild) {
+                host.removeChild(host.firstElementChild);
+                activePetals = Math.max(0, activePetals - 1);
+            }
+
+            var petal = document.createElement('span');
+            var size = 8 + Math.random() * 8;
+            var drift = -58 + Math.random() * 116;
+            var duration = 9000 + Math.random() * 5500;
+            var rotate = 180 + Math.random() * 340;
+            var opacity = 0.14 + Math.random() * 0.22;
+
+            petal.className = 'scroll-petal';
+            petal.style.left = (Math.random() * 100).toFixed(2) + 'vw';
+            petal.style.setProperty('--petal-size', size.toFixed(2) + 'px');
+            petal.style.setProperty('--petal-drift', drift.toFixed(2) + 'px');
+            petal.style.setProperty('--petal-duration', duration.toFixed(0) + 'ms');
+            petal.style.setProperty('--petal-rotate', rotate.toFixed(0) + 'deg');
+            petal.style.setProperty('--petal-opacity', opacity.toFixed(2));
+            petal.style.animationDelay = (Math.random() * 220).toFixed(0) + 'ms';
+
+            host.appendChild(petal);
+            activePetals += 1;
+
+            petal.addEventListener('animationend', function () {
+                if (petal.parentNode) {
+                    petal.parentNode.removeChild(petal);
+                }
+                activePetals = Math.max(0, activePetals - 1);
+            });
+        }
+
+        function emitByScroll() {
+            if (!body.classList.contains('gate-opened')) {
+                return;
+            }
+
+            var currentY = window.scrollY || window.pageYOffset || 0;
+            var delta = Math.abs(currentY - lastScrollY);
+            lastScrollY = currentY;
+            if (delta < 4) {
+                return;
+            }
+
+            var now = Date.now();
+            if (now - lastEmitAt < emitCooldownMs) {
+                return;
+            }
+            lastEmitAt = now;
+
+            var burstCount = 1 + Math.min(3, Math.floor(delta / 180));
+            for (var i = 0; i < burstCount; i += 1) {
+                createPetal();
+            }
+        }
+
+        window.addEventListener('scroll', emitByScroll, { passive: true });
+    }
+
+    function initEventCountdown() {
+        var host = document.getElementById('eventCountdown');
+        if (!host) {
+            return;
+        }
+
+        var targetMs = parseInt(host.getAttribute('data-target-ms') || '', 10);
+        if (isNaN(targetMs) || targetMs <= Date.now()) {
+            host.style.display = 'none';
+            return;
+        }
+
+        var daysNode = document.getElementById('countdownDays');
+        var hoursNode = document.getElementById('countdownHours');
+        var minutesNode = document.getElementById('countdownMinutes');
+        if (!daysNode || !hoursNode || !minutesNode) {
+            return;
+        }
+
+        function pad2(value) {
+            return value < 10 ? '0' + String(value) : String(value);
+        }
+
+        function renderCountdown() {
+            var remainingMs = targetMs - Date.now();
+            if (remainingMs <= 0) {
+                host.style.display = 'none';
+                return false;
+            }
+
+            var remainingMinutes = Math.floor(remainingMs / 60000);
+            var days = Math.floor(remainingMinutes / (60 * 24));
+            var hours = Math.floor((remainingMinutes % (60 * 24)) / 60);
+            var minutes = remainingMinutes % 60;
+
+            daysNode.textContent = String(days);
+            hoursNode.textContent = pad2(hours);
+            minutesNode.textContent = pad2(minutes);
+            return true;
+        }
+
+        renderCountdown();
+        var timerId = window.setInterval(function () {
+            if (!renderCountdown()) {
+                window.clearInterval(timerId);
+            }
+        }, 1000);
+    }
+
     // BABY PLAY WIDGET START
     function initBabyPlayWidget() {
         var widget = document.getElementById('babyPlayWidget');
@@ -194,8 +465,11 @@
         var avatarBtn = document.getElementById('babyPlayAvatar');
         var heartsHost = document.getElementById('babyPlayHearts');
         var tooltipNode = document.getElementById('babyPlayTooltip');
+        var blessingToastNode = document.getElementById('babyPlayBlessingToast');
+        var blessingCounterNode = document.getElementById('babyPlayBlessingCounter');
         var giggleAudio = document.getElementById('babyPlayAudio');
         var imageNode = widget.querySelector('.baby-play__avatar-img');
+        var emojiNode = widget.querySelector('.baby-play__emoji');
 
         if (!avatarBtn || !heartsHost) {
             return;
@@ -208,8 +482,16 @@
         var maxHearts = 24;
         var fallbackAudioCtx = null;
         var tipTimerId = 0;
+        var blessingToastTimerId = 0;
+        var moodSwapTimerId = 0;
+        var moodResetTimerId = 0;
         var dragThreshold = 6;
         var viewportPadding = 8;
+        var moodSequence = ['😊', '😂', '🥰', '😴'];
+        var moodLabels = ['ખુશ', 'હસતું', 'પ્રેમાળ', 'ઊંઘતું'];
+        var moodIndex = -1;
+        var blessingStorageKey = 'babyPlayAshirwadCount:' + window.location.pathname;
+        var blessingCount = 0;
         var dragState = {
             active: false,
             moved: false,
@@ -254,6 +536,54 @@
                     }
                 });
             }
+        }
+
+        function readBlessingCount() {
+            try {
+                var rawValue = window.localStorage.getItem(blessingStorageKey);
+                var parsed = parseInt(rawValue || '0', 10);
+                if (!isNaN(parsed) && parsed >= 0) {
+                    blessingCount = parsed;
+                }
+            } catch (error) {
+                blessingCount = 0;
+            }
+        }
+
+        function renderBlessingCount() {
+            if (!blessingCounterNode) {
+                return;
+            }
+            blessingCounterNode.textContent = 'આશીર્વાદ: ' + blessingCount;
+        }
+
+        function showBlessingToast() {
+            if (blessingToastNode) {
+                blessingToastNode.textContent = 'આશીર્વાદ મોકલાયો 💖';
+            }
+            widget.classList.add('show-blessing');
+            if (blessingToastTimerId) {
+                window.clearTimeout(blessingToastTimerId);
+            }
+            blessingToastTimerId = window.setTimeout(function () {
+                widget.classList.remove('show-blessing');
+            }, 1300);
+        }
+
+        function saveBlessingCount() {
+            try {
+                window.localStorage.setItem(blessingStorageKey, String(blessingCount));
+            } catch (error) {
+                // Ignore storage failures.
+            }
+        }
+
+        function addBlessing() {
+            blessingCount += 1;
+            renderBlessingCount();
+            saveBlessingCount();
+            showBlessingToast();
+            spawnHearts();
         }
 
         if (giggleAudio) {
@@ -454,7 +784,37 @@
             }
         }
 
-        function triggerLaugh() {
+        function cycleMood() {
+            if (!emojiNode) {
+                return;
+            }
+
+            moodIndex = (moodIndex + 1) % moodSequence.length;
+
+            if (moodSwapTimerId) {
+                window.clearTimeout(moodSwapTimerId);
+            }
+            if (moodResetTimerId) {
+                window.clearTimeout(moodResetTimerId);
+            }
+
+            widget.classList.remove('is-mood-popped');
+            widget.classList.add('is-mood-changing');
+
+            moodSwapTimerId = window.setTimeout(function () {
+                emojiNode.textContent = moodSequence[moodIndex];
+                avatarBtn.setAttribute('aria-label', 'બેબીનો મૂડ: ' + moodLabels[moodIndex]);
+                avatarBtn.setAttribute('title', 'બેબીનો મૂડ: ' + moodLabels[moodIndex]);
+                widget.classList.remove('is-mood-changing');
+                widget.classList.add('is-mood-popped');
+            }, 110);
+
+            moodResetTimerId = window.setTimeout(function () {
+                widget.classList.remove('is-mood-popped');
+            }, 340);
+        }
+
+        function triggerLaugh(spawnHeartBurst) {
             var now = Date.now();
             if (now < activeUntil) {
                 return;
@@ -462,7 +822,9 @@
 
             activeUntil = now + cooldownMs;
             widget.classList.add('is-laughing');
-            spawnHearts();
+            if (spawnHeartBurst !== false) {
+                spawnHearts();
+            }
             playGiggleSound();
 
             window.setTimeout(function () {
@@ -482,7 +844,9 @@
             if (dragState.suppressClick) {
                 return;
             }
-            triggerLaugh();
+            cycleMood();
+            addBlessing();
+            triggerLaugh(false);
             showTooltip(1400);
         });
         avatarBtn.addEventListener('pointerenter', function (event) {
@@ -499,6 +863,8 @@
         });
 
         window.addEventListener('resize', keepInsideViewport);
+        readBlessingCount();
+        renderBlessingCount();
 
         if (body.classList.contains('gate-opened')) {
             showTooltip(2800);
@@ -522,6 +888,10 @@
     if (body.getAttribute('data-page') === 'invite') {
         initShareButtons();
         initDownloadImage();
+        initPhotoMemorySlider();
+        initMiniBalloonInteraction();
+        initScrollPetals();
+        initEventCountdown();
         initBabyPlayWidget();
     }
 })();
