@@ -25,9 +25,6 @@ return [
     'meal_time_text' => 'સવારે ૧૧:૦૦ થી આગળ',
     'meal_note' => 'આપ સહપરિવાર પધારશો.',
 
-    // Countdown use
-    'event_datetime' => '2026-03-22 11:00:00',
-
     'venue_name' => 'ઉમિયા માતાજી યાત્રી ભવન',
     'full_address' => 'વણગલા ચોકડી, ઊંઝા',
     'city' => 'ઊંઝા',
