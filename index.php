@@ -106,8 +106,7 @@ $decorCandidates = array_merge(
     stringList($invitation['decor_images'] ?? []),
     [
         'assets/images/image-1.png',
-        'assets/images/image-2.png',
-        'assets/images/image-3.png',
+       
     ]
 );
 $decorPool = [];
@@ -155,41 +154,11 @@ $venueImage  = firstExistingPublicPath([
     (string)($invitation['venue_image'] ?? ''),
 ], '');
 
-$memorySlides = [
-    [
-        'label' => 'Couple Photo',
-        'path' => firstExistingPublicPath([
-            (string)($invitation['memory_couple_photo'] ?? ''),
-            (string)($invitation['couple_photo'] ?? ''),
-            'assets/images/image-1.png',
-        ], 'assets/images/image-1.png'),
-    ],
-    [
-        'label' => 'Baby Scan Photo',
-        'path' => firstExistingPublicPath([
-            (string)($invitation['memory_baby_scan_photo'] ?? ''),
-            (string)($invitation['baby_scan_photo'] ?? ''),
-            'assets/images/image-2.png',
-        ], 'assets/images/image-2.png'),
-    ],
-    [
-        'label' => 'Family Photo',
-        'path' => firstExistingPublicPath([
-            (string)($invitation['memory_family_photo'] ?? ''),
-            (string)($invitation['family_photo'] ?? ''),
-            'assets/images/image-3.png',
-        ], 'assets/images/image-3.png'),
-    ],
-];
-
-$eventDateTimeRaw = trim((string)($invitation['event_datetime'] ?? ''));
-$countdownTargetMs = null;
-if ($eventDateTimeRaw !== '') {
-    $eventTimestamp = strtotime($eventDateTimeRaw);
-    if ($eventTimestamp !== false && $eventTimestamp > time()) {
-        $countdownTargetMs = $eventTimestamp * 1000;
-    }
-}
+$memoryPhoto = firstExistingPublicPath([
+    (string)($invitation['memory_couple_photo'] ?? ''),
+    (string)($invitation['couple_photo'] ?? ''),
+    'assets/images/image-1.png',
+], 'assets/images/image-1.png');
 
 $leadLines = stringList($invitation['lead_lines'] ?? []);
 if ($leadLines === []) {
@@ -219,6 +188,7 @@ if ($inviters === []) {
         ($fatherName !== '') ? $fatherName . ' પરિવાર' : '',
     ], static fn(string $l): bool => $l !== ''));
 }
+$snehadhinLines = stringList($invitation['snehadhin'] ?? []);
 
 $phoneDisplay    = (string)($invitation['contact_phone']    ?? '');
 $phoneDial       = preg_replace('/[^0-9+]/', '', $phoneDisplay) ?: '';
@@ -1432,14 +1402,7 @@ if ($qrEnabled) {
         .memory-slide {
             position: absolute;
             inset: 0;
-            opacity: 0;
-            transition: opacity 0.95s ease;
-            z-index: 0;
-        }
-
-        .memory-slide.is-active {
             opacity: 1;
-            z-index: 1;
         }
 
         .memory-slide img {
@@ -1455,77 +1418,6 @@ if ($qrEnabled) {
             font-weight: 600;
             color: #6d3a57;
             min-height: 1.3em;
-        }
-
-        .memory-slider-dots {
-            margin-top: 5px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .memory-slider-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: rgba(180, 125, 160, 0.38);
-            transition: transform 0.22s ease, background-color 0.22s ease;
-        }
-
-        .memory-slider-dot.is-active {
-            background: rgba(193, 86, 143, 0.96);
-            transform: scale(1.24);
-        }
-
-        .countdown-block {
-            margin: 12px auto 8px;
-            border: 1.5px solid rgba(171, 103, 144, 0.42);
-            border-radius: 12px;
-            background:
-                linear-gradient(170deg, rgba(255, 242, 250, 0.95), rgba(246, 233, 255, 0.95));
-            padding: 10px 12px;
-            box-shadow: 0 7px 16px rgba(121, 71, 108, 0.14);
-        }
-
-        .countdown-title {
-            color: #7f345f;
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            margin-bottom: 8px;
-        }
-
-        .countdown-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 7px;
-        }
-
-        .countdown-item {
-            border: 1px solid rgba(170, 111, 151, 0.32);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.65);
-            padding: 7px 4px 6px;
-        }
-
-        .countdown-value {
-            display: block;
-            color: #5f2248;
-            font-size: 1rem;
-            line-height: 1;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .countdown-label {
-            display: block;
-            margin-top: 3px;
-            color: #7c4c67;
-            font-size: 0.64rem;
-            font-weight: 700;
-            letter-spacing: 0.4px;
-            text-transform: uppercase;
         }
 
         /* ── Dashed divider ──────────────────────── */
@@ -2130,27 +2022,6 @@ if ($qrEnabled) {
                 font-size: 0.67rem;
             }
 
-            .countdown-block {
-                margin-top: 10px;
-                padding: 9px 10px;
-            }
-
-            .countdown-title {
-                font-size: 0.7rem;
-                margin-bottom: 6px;
-            }
-
-            .countdown-grid {
-                gap: 5px;
-            }
-
-            .countdown-value {
-                font-size: 0.9rem;
-            }
-
-            .countdown-label {
-                font-size: 0.58rem;
-            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -2294,42 +2165,15 @@ if ($qrEnabled) {
                 <p class="invite-line"><?php echo e($programLine); ?></p>
             <?php endif; ?>
 
-            <div id="photoMemorySlider" class="memory-slider" data-interval-ms="5000" aria-label="Photo memories">
+            <div class="memory-slider" aria-label="Photo memory">
                 <div class="memory-slider-title">Photo Memories</div>
                 <div class="memory-slider-stage" aria-live="polite">
-                    <?php foreach ($memorySlides as $index => $slide): ?>
-                        <figure class="memory-slide <?php echo $index === 0 ? 'is-active' : ''; ?>" data-label="<?php echo e($slide['label']); ?>" aria-hidden="<?php echo $index === 0 ? 'false' : 'true'; ?>">
-                            <img src="<?php echo e(assetUrl((string)$slide['path'])); ?>" alt="<?php echo e((string)$slide['label']); ?>">
-                        </figure>
-                    <?php endforeach; ?>
+                    <figure class="memory-slide" aria-hidden="false">
+                        <img src="<?php echo e(assetUrl($memoryPhoto)); ?>" alt="Couple Photo">
+                    </figure>
                 </div>
-                <p id="photoMemoryCaption" class="memory-slider-caption"><?php echo e((string)($memorySlides[0]['label'] ?? 'Photo Memory')); ?></p>
-                <div class="memory-slider-dots" aria-hidden="true">
-                    <?php foreach ($memorySlides as $index => $slide): ?>
-                        <span class="memory-slider-dot <?php echo $index === 0 ? 'is-active' : ''; ?>"></span>
-                    <?php endforeach; ?>
-                </div>
+                
             </div>
-
-            <?php if ($countdownTargetMs !== null): ?>
-                <div id="eventCountdown" class="countdown-block" data-target-ms="<?php echo e((string)$countdownTargetMs); ?>">
-                    <div class="countdown-title">આનંદમય દિવસ માટે બાકી સમય</div>
-                    <div class="countdown-grid" role="timer" aria-live="polite">
-                        <div class="countdown-item">
-                            <span id="countdownDays" class="countdown-value">0</span>
-                            <span class="countdown-label">Days</span>
-                        </div>
-                        <div class="countdown-item">
-                            <span id="countdownHours" class="countdown-value">0</span>
-                            <span class="countdown-label">Hours</span>
-                        </div>
-                        <div class="countdown-item">
-                            <span id="countdownMinutes" class="countdown-value">0</span>
-                            <span class="countdown-label">Minutes</span>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
 
             <!-- ══ MEAL ══ -->
             <hr class="dash-divider">
@@ -2371,6 +2215,16 @@ if ($qrEnabled) {
                     <div class="inviter-name"><?php echo e($line); ?></div>
                 <?php endforeach; ?>
             </div>
+
+            <?php if ($snehadhinLines !== []): ?>
+                <hr class="dash-divider">
+                <div class="detail-section">
+                    <div class="section-title">:: સ્નેહાધિન ::</div>
+                    <?php foreach ($snehadhinLines as $line): ?>
+                        <div class="inviter-name"><?php echo e($line); ?></div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
 
         </div><!-- /card-content -->
     </div><!-- /inv-card -->

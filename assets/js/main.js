@@ -184,75 +184,6 @@
         });
     }
 
-    function initPhotoMemorySlider() {
-        var slider = document.getElementById('photoMemorySlider');
-        if (!slider) {
-            return;
-        }
-
-        var slides = slider.querySelectorAll('.memory-slide');
-        var dots = slider.querySelectorAll('.memory-slider-dot');
-        var captionNode = document.getElementById('photoMemoryCaption');
-        var intervalMs = parseInt(slider.getAttribute('data-interval-ms') || '5000', 10);
-        var activeIndex = 0;
-        var timerId = 0;
-
-        if (!slides.length || slides.length < 2) {
-            return;
-        }
-        if (isNaN(intervalMs) || intervalMs < 1500) {
-            intervalMs = 5000;
-        }
-
-        function setActive(index) {
-            slides.forEach(function (slide, slideIndex) {
-                var isActive = slideIndex === index;
-                slide.classList.toggle('is-active', isActive);
-                slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
-            });
-
-            dots.forEach(function (dot, dotIndex) {
-                dot.classList.toggle('is-active', dotIndex === index);
-            });
-
-            if (captionNode) {
-                captionNode.textContent = slides[index].getAttribute('data-label') || '';
-            }
-            activeIndex = index;
-        }
-
-        function nextSlide() {
-            setActive((activeIndex + 1) % slides.length);
-        }
-
-        function stop() {
-            if (timerId) {
-                window.clearInterval(timerId);
-                timerId = 0;
-            }
-        }
-
-        function start() {
-            stop();
-            timerId = window.setInterval(nextSlide, intervalMs);
-        }
-
-        slider.addEventListener('mouseenter', stop);
-        slider.addEventListener('mouseleave', start);
-        slider.addEventListener('focusin', stop);
-        slider.addEventListener('focusout', start);
-        document.addEventListener('visibilitychange', function () {
-            if (document.hidden) {
-                stop();
-            } else {
-                start();
-            }
-        });
-
-        setActive(0);
-        start();
-    }
-
     function initMiniBalloonInteraction() {
         var host = document.getElementById('miniBalloons');
         if (!host) {
@@ -404,55 +335,6 @@
         }
 
         window.addEventListener('scroll', emitByScroll, { passive: true });
-    }
-
-    function initEventCountdown() {
-        var host = document.getElementById('eventCountdown');
-        if (!host) {
-            return;
-        }
-
-        var targetMs = parseInt(host.getAttribute('data-target-ms') || '', 10);
-        if (isNaN(targetMs) || targetMs <= Date.now()) {
-            host.style.display = 'none';
-            return;
-        }
-
-        var daysNode = document.getElementById('countdownDays');
-        var hoursNode = document.getElementById('countdownHours');
-        var minutesNode = document.getElementById('countdownMinutes');
-        if (!daysNode || !hoursNode || !minutesNode) {
-            return;
-        }
-
-        function pad2(value) {
-            return value < 10 ? '0' + String(value) : String(value);
-        }
-
-        function renderCountdown() {
-            var remainingMs = targetMs - Date.now();
-            if (remainingMs <= 0) {
-                host.style.display = 'none';
-                return false;
-            }
-
-            var remainingMinutes = Math.floor(remainingMs / 60000);
-            var days = Math.floor(remainingMinutes / (60 * 24));
-            var hours = Math.floor((remainingMinutes % (60 * 24)) / 60);
-            var minutes = remainingMinutes % 60;
-
-            daysNode.textContent = String(days);
-            hoursNode.textContent = pad2(hours);
-            minutesNode.textContent = pad2(minutes);
-            return true;
-        }
-
-        renderCountdown();
-        var timerId = window.setInterval(function () {
-            if (!renderCountdown()) {
-                window.clearInterval(timerId);
-            }
-        }, 1000);
     }
 
     // BABY PLAY WIDGET START
@@ -888,10 +770,8 @@
     if (body.getAttribute('data-page') === 'invite') {
         initShareButtons();
         initDownloadImage();
-        initPhotoMemorySlider();
         initMiniBalloonInteraction();
         initScrollPetals();
-        initEventCountdown();
         initBabyPlayWidget();
     }
 })();
