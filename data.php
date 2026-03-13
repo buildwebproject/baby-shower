@@ -40,12 +40,16 @@ return [
         'પટેલ નિશિત યોગેશભાઈ ',
         'પટેલ દેવ યોગેશભાઈ   ',
         '4 આસ્થા બંગલૉ સન પાર્ક દાતરડી સ્કૂલ ની બાજુમાં 80 ફૂટ રિંગ રોડ ઊંઝા . ',
+        'મોં . 9016056819',
+        'મોં . 8200189043',
     ],
     'snehadhin' => [
-        'પટેલ પ્રહ્લાદ ઈશ્વર પરિવાર',
+        'પટેલ પ્રહલાદ ઈશ્વર પરિવાર',
     ],
 
     'google_maps_url' => 'https://maps.app.goo.gl/dpNe2PrEfzKqUfcV7',
+    'share_image' => 'storage/share-preview-new.png',
+    'share_cache_bust' => '20260306-064258',
 
     // Optional
     'contact_phone' => '',

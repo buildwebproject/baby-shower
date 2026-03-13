@@ -122,6 +122,9 @@
             }
             isRunning = true;
             openBtn.disabled = true;
+            if (typeof window.startBackgroundMusic === 'function') {
+                window.startBackgroundMusic();
+            }
 
             setStatus('રિબન ખુલી રહી છે.');
             shell.classList.add('is-untying');
@@ -153,6 +156,32 @@
 
         window.openInvitationGate = openInvitationGate;
         openBtn.addEventListener('click', openInvitationGate);
+    }
+
+    function initBackgroundMusic() {
+        var music = document.getElementById('backgroundMusic');
+        if (!music) {
+            return;
+        }
+
+        music.volume = 0.4;
+        music.muted = false;
+
+        function playMusic() {
+            var playPromise = music.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(function () {
+                    // Ignore blocked autoplay attempts.
+                });
+            }
+        }
+
+        window.startBackgroundMusic = playMusic;
+        playMusic();
+
+        ['click', 'touchstart', 'keydown'].forEach(function (eventName) {
+            document.addEventListener(eventName, playMusic, { passive: true, once: true });
+        });
     }
 
     function initDownloadImage() {
@@ -768,6 +797,7 @@
     initOpeningExperience();
 
     if (body.getAttribute('data-page') === 'invite') {
+        initBackgroundMusic();
         initShareButtons();
         initDownloadImage();
         initMiniBalloonInteraction();

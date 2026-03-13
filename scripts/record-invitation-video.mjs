@@ -88,7 +88,8 @@ async function run() {
     const page = await context.newPage();
     const video = page.video();
 
-    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    await page.waitForSelector('body', { timeout: 15000 });
     await sleep(1200);
 
     const openBtn = page.locator('#openCoverBtn');

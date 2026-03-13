@@ -122,10 +122,35 @@ if ($decorPool === []) {
 while (count($decorPool) < 3) {
     $decorPool[] = $decorPool[count($decorPool) - 1];
 }
+
+$memoryCandidates = array_merge(
+    stringList($invitation['memory_photos'] ?? []),
+    [
+        (string)($invitation['memory_couple_photo'] ?? ''),
+        (string)($invitation['couple_photo'] ?? ''),
+        'assets/images/image-1.png',
+        'assets/images/image-2.png',
+        'assets/images/image-3.png',
+    ]
+);
+$memoryPool = [];
+foreach ($memoryCandidates as $candidate) {
+    $resolvedPath = firstExistingPublicPath([$candidate]);
+    if ($resolvedPath !== '' && !in_array($resolvedPath, $memoryPool, true)) {
+        $memoryPool[] = $resolvedPath;
+    }
+}
+if ($memoryPool === []) {
+    $memoryPool[] = $ganeshImage;
+}
+while (count($memoryPool) < 2) {
+    $memoryPool[] = $memoryPool[count($memoryPool) - 1];
+}
+
 $decorSlotConfig = is_array($invitation['decor_slots'] ?? null) ? $invitation['decor_slots'] : [];
 $cornerImageFallbacks = [
-    'top_left' => $decorPool[0],
-    'top_right' => $decorPool[1],
+    'top_left' => $memoryPool[1],
+    'top_right' => $memoryPool[1],
     'bottom_left' => $decorPool[2],
     'bottom_right' => $decorPool[2],
 ];
@@ -135,6 +160,7 @@ foreach ($cornerImageFallbacks as $slot => $fallbackPath) {
     $configuredPath = is_scalar($configured) ? (string)$configured : '';
     $cornerImages[$slot] = firstExistingPublicPath([$configuredPath, $fallbackPath], $fallbackPath);
 }
+$cornerImages['top_left'] = $cornerImages['top_right'];
 
 
 
@@ -155,8 +181,7 @@ $venueImage  = firstExistingPublicPath([
 ], '');
 
 $memoryPhoto = firstExistingPublicPath([
-    (string)($invitation['memory_couple_photo'] ?? ''),
-    (string)($invitation['couple_photo'] ?? ''),
+    $memoryPool[0],
     'assets/images/image-1.png',
 ], 'assets/images/image-1.png');
 
@@ -217,8 +242,39 @@ if ($whatsAppMessage === '') {
     $whatsAppMessage = $ogTitle . ' - ' . $ogDescription;
 }
 $scriptBase   = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
-$ogImageVersion = (string)(@filemtime(__DIR__ . '/data.php') ?: time());
-$ogImageUrl   = baseUrl() . $scriptBase . '/share-image.php?v=' . rawurlencode($ogImageVersion);
+$shareCacheBust = trim((string)($invitation['share_cache_bust'] ?? ''));
+$ogImageCandidates = [];
+$configuredShareImage = trim((string)($invitation['share_image'] ?? ''));
+if ($configuredShareImage !== '') {
+    $ogImageCandidates[] = $configuredShareImage;
+}
+$ogImageCandidates = array_merge($ogImageCandidates, stringList($invitation['share_images'] ?? []), [
+    'storage/share-preview.png',
+]);
+$ogImagePath = firstExistingPublicPath($ogImageCandidates, '');
+$ogImageType = 'image/png';
+if ($ogImagePath !== '') {
+    if (preg_match('#^https?://#i', $ogImagePath)) {
+        $separator = (strpos($ogImagePath, '?') === false) ? '?' : '&';
+        $cacheValue = $shareCacheBust !== '' ? $shareCacheBust : (string)time();
+        $ogImageUrl = $ogImagePath . $separator . 'v=' . rawurlencode($cacheValue);
+    } else {
+        $resolvedOgImagePath = __DIR__ . '/' . ltrim($ogImagePath, '/');
+        $ogImageVersion = $shareCacheBust !== '' ? $shareCacheBust : (string)(@filemtime($resolvedOgImagePath) ?: time());
+        $ogImageUrl = baseUrl() . $scriptBase . '/' . assetUrl($ogImagePath) . '?v=' . rawurlencode($ogImageVersion);
+        $extension = strtolower(pathinfo($resolvedOgImagePath, PATHINFO_EXTENSION));
+        if ($extension === 'jpg' || $extension === 'jpeg') {
+            $ogImageType = 'image/jpeg';
+        } elseif ($extension === 'webp') {
+            $ogImageType = 'image/webp';
+        } elseif ($extension === 'gif') {
+            $ogImageType = 'image/gif';
+        }
+    }
+} else {
+    $fallbackOgImageVersion = (string)(@filemtime(__DIR__ . '/data.php') ?: time());
+    $ogImageUrl = baseUrl() . $scriptBase . '/share-image.php?v=' . rawurlencode($fallbackOgImageVersion);
+}
 
 $flash  = ['type' => '', 'message' => ''];
 $old    = ['name' => '', 'mobile' => '', 'guests' => '1'];
@@ -296,7 +352,7 @@ if ($qrEnabled) {
     <meta property="og:image:url"         content="<?php echo e($ogImageUrl); ?>">
     <meta property="og:image"             content="<?php echo e($ogImageUrl); ?>">
     <meta property="og:image:secure_url"  content="<?php echo e($ogImageUrl); ?>">
-    <meta property="og:image:type"        content="image/png">
+    <meta property="og:image:type"        content="<?php echo e($ogImageType); ?>">
     <meta property="og:image:width"       content="1200">
     <meta property="og:image:height"      content="630">
     <meta property="og:image:alt"         content="<?php echo e($ogImageAlt); ?>">
@@ -2125,8 +2181,8 @@ if ($qrEnabled) {
         </div>
 
         <!-- Corner ornaments -->
-        <img src="<?php echo e(assetUrl($cornerImages['top_left'])); ?>" alt="" class="orn orn-tl">
-        <img src="<?php echo e(assetUrl($cornerImages['bottom_right'])); ?>" alt="" class="orn orn-tr">
+        <?php /* <img src="<?php echo e(assetUrl($cornerImages['top_left'])); ?>" alt="" class="orn orn-tl"> */ ?>
+        <?php /* <img src="<?php echo e(assetUrl($cornerImages['top_right'])); ?>" alt="" class="orn orn-tr"> */ ?>
 
         <div class="card-content">
 
@@ -2290,6 +2346,15 @@ if ($qrEnabled) {
     </div>
 </div>
 <!-- BABY PLAY WIDGET END -->
+
+<audio
+    id="backgroundMusic"
+    src="assets/background-sound/Tak_Taki.mp4"
+    preload="auto"
+    loop
+    playsinline
+    style="display:none;"
+></audio>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="assets/js/main.js?v=<?php echo rawurlencode((string)(@filemtime(__DIR__ . '/assets/js/main.js') ?: time())); ?>"></script>
