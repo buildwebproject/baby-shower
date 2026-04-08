@@ -60,6 +60,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
             $payload['rsvp_enabled'] = isset($_POST['rsvp_enabled']);
             $payload['qr_enabled'] = isset($_POST['qr_enabled']);
+            $payload['featured_enabled'] = isset($_POST['featured_enabled']);
 
             if (invitation_save_data($payload)) {
                 $data = invitation_load_data();
@@ -206,6 +207,7 @@ $csrfToken = invitation_admin_csrf_token();
                 <div><label>Door Center Image Path</label><input name="door_center_image" value="<?php echo h((string)($data['door_center_image'] ?? '')); ?>"></div>
 
                 <div class="full checks">
+                    <label><input type="checkbox" name="featured_enabled" <?php echo !empty($data['featured_enabled']) ? 'checked' : ''; ?>> Featured Invitation Enabled</label>
                     <label><input type="checkbox" name="rsvp_enabled" <?php echo !empty($data['rsvp_enabled']) ? 'checked' : ''; ?>> RSVP Enabled</label>
                     <label><input type="checkbox" name="qr_enabled" <?php echo !empty($data['qr_enabled']) ? 'checked' : ''; ?>> QR Enabled</label>
                 </div>

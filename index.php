@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/includes/invitation_store.php';
 $invitation = invitation_load_data();
+$featuredEnabled = !array_key_exists('featured_enabled', $invitation) || !empty($invitation['featured_enabled']);
 
 function e(string $value): string
 {
@@ -2083,14 +2084,111 @@ if ($qrEnabled) {
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
         }
+
+        .developer-credit {
+            margin-top: 18px;
+            padding: 0 12px;
+            text-align: center;
+            font-size: 0.84rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: #8a5a72;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+        }
+
+        .closed-card-wrap {
+            width: min(720px, 100%);
+            padding: 24px 12px 0;
+        }
+
+        .closed-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(201, 133, 165, 0.35);
+            border-radius: 30px;
+            padding: 34px 24px;
+            background:
+                radial-gradient(circle at top right, rgba(255, 214, 230, 0.82), transparent 36%),
+                linear-gradient(180deg, rgba(255, 251, 253, 0.96), rgba(255, 241, 247, 0.98));
+            box-shadow: 0 24px 60px rgba(157, 93, 125, 0.16);
+            text-align: center;
+        }
+
+        .closed-card::before,
+        .closed-card::after {
+            content: '';
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: rgba(255, 196, 220, 0.18);
+            filter: blur(6px);
+        }
+
+        .closed-card::before {
+            top: -50px;
+            left: -40px;
+        }
+
+        .closed-card::after {
+            right: -44px;
+            bottom: -56px;
+        }
+
+        .closed-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(186, 82, 124, 0.12);
+            color: #9c365f;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .closed-title {
+            font-family: 'Noto Serif Gujarati', serif;
+            color: #7c2b4f;
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 12px;
+        }
+
+        .closed-text {
+            max-width: 540px;
+            margin: 0 auto;
+            color: #6c4153;
+            font-size: 1rem;
+            line-height: 1.8;
+            font-weight: 600;
+        }
+
+        .closed-email {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 12px 18px;
+            border-radius: 16px;
+            background: #fff;
+            border: 1px solid rgba(188, 112, 149, 0.26);
+            color: #8a2953;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 12px 30px rgba(164, 94, 127, 0.12);
+        }
     </style>
 </head>
 <body
-    data-page="invite"
+    data-page="<?php echo $featuredEnabled ? 'invite' : 'closed'; ?>"
     data-whatsapp-message="<?php echo e($whatsAppMessage); ?>"
 >
 <div id="scrollPetalsLayer" class="scroll-petals" aria-hidden="true"></div>
 
+<?php if ($featuredEnabled): ?>
 <div id="miniBalloons" class="mini-balloons" aria-label="બલૂન મિની ગેમ">
     <div class="mini-balloons__items" aria-hidden="false">
         <button type="button" class="mini-balloon" aria-label="બલૂન પોપ 1">🎈</button>
@@ -2328,7 +2426,18 @@ if ($qrEnabled) {
     <?php endif; ?>
 
 </div><!-- /card-wrap -->
+<?php else: ?>
+<div class="closed-card-wrap">
+    <div class="closed-card">
+        <div class="closed-badge">Invitation Closed</div>
+        <h1 class="closed-title">Invitation is closed</h1>
+        <p class="closed-text">Invitation maker is coming soon. If you need to create a card, please contact the email below.</p>
+        <a class="closed-email" href="mailto:buildwebproject@gmail.com">buildwebproject@gmail.com</a>
+    </div>
+</div>
+<?php endif; ?>
 
+<?php if ($featuredEnabled): ?>
 <!-- BABY PLAY WIDGET START -->
 <div id="babyPlayWidget" class="baby-play" data-baby-image="">
     <div class="baby-play__controls">
@@ -2355,6 +2464,7 @@ if ($qrEnabled) {
     playsinline
     style="display:none;"
 ></audio>
+<?php endif; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="assets/js/main.js?v=<?php echo rawurlencode((string)(@filemtime(__DIR__ . '/assets/js/main.js') ?: time())); ?>"></script>
@@ -2363,5 +2473,6 @@ window.addEventListener('load', function () {
     document.body.classList.add('page-loaded');
 });
 </script>
+<p class="developer-credit">Developed by Dev Patel</p>
 </body>
 </html>
